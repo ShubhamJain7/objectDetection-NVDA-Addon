@@ -8,4 +8,4 @@ addon/doc/en/
 *.py[co]
 *.nvda-addon
 .sconsign.dblite
-addon/globalPlugins/ObjectDetection/models/*
+addon/doObjectDetection/models/*

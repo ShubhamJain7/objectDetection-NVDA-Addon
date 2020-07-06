@@ -1,6 +1,12 @@
 import globalPluginHandler
 from contentRecog import recogUi
-from .ObjectDetection import *
+import os
+import  sys
+
+base_dir = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(base_dir)
+
+from doObjectDetection import *
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
@@ -17,7 +23,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		recogUi.recognizeNavigatorObject(x)
 
 	__gestures={
-		"kb:NVDA+A": "detectObjectsTinyYOLOv3",
-		"kb:NVDA+B": "detectObjectsYOLOv3",
-		"kb:NVDA+C": "detectObjectsDETR"
+		"kb:Alt+NVDA+1": "detectObjectsTinyYOLOv3",
+		"kb:Alt+NVDA+2": "detectObjectsYOLOv3",
+		"kb:Alt+NVDA+3": "detectObjectsDETR"
 	}
