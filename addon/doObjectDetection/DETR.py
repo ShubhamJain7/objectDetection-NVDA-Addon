@@ -13,6 +13,9 @@ class DETRDetection():
 			self.imagePath = imagePath
 
 		self.modelPath = self.baseDir + "\\models\\DETRmodel.onnx"
+		self.dllPaths = ["\\dlls\\opencv_core430.dll", "\\dlls\\opencv_imgproc430.dll", "\\dlls\\opencv_imgcodecs430.dll",
+						"\\dlls\\onnxruntime.dll", "\\dlls\\DETR-DLL.dll"]
+		self.dllPaths = [self.baseDir + dllPath for dllPath in self.dllPaths]
 
 	# define singular and plural forms of class labels
 	CLASSES_SINGULAR = ['N/A', 'a person', 'a bicycle', 'a car', 'a motorcycle', 'an airplane', 'a bus', 'a train',
@@ -51,16 +54,25 @@ class DETRDetection():
 					("x2", c_int),
 					("y2", c_int), ]
 
+	def _checkFiles(self):
+		notFound = ""
+		if not os.path.exists(self.modelPath):
+			notFound = notFound + f'objectDetection(DETR): Model file not found at {self.modelPath}'
+
+		for dllPath in self.dllPaths:
+			if not os.path.exists(dllPath):
+				notFound = notFound + f'\nobjectDetection(DETR): DLL file not found at {dllPath}'
+
+		if notFound != "":
+			raise FileNotFoundError(notFound)
+
 	def _loadDLLs(self):
 		# load dependant DLLs
-		opencv_core430 = CDLL(self.baseDir + "\\dlls\\opencv_core430.dll")
-		opencv_imgproc430 = CDLL(self.baseDir + "\\dlls\\opencv_imgproc430.dll")
-		opencv_imgcodecs430 = CDLL(self.baseDir + "\\dlls\\opencv_imgcodecs430.dll")
-		opencv_dnn430 = CDLL(self.baseDir + "\\dlls\\opencv_dnn430.dll")
-		onnx_runtime = CDLL(self.baseDir + "\\dlls/onnxruntime.dll")
+		for dllPath in self.dllPaths[:-1]:
+			_ = CDLL(dllPath)
 
 		# load required DLL
-		lib = CDLL(self.baseDir + "\\dlls\\DETR-DLL.dll")
+		lib = CDLL(self.dllPaths[-1])
 		return lib
 
 	def _getResults(self, lib):
@@ -86,6 +98,7 @@ class DETRDetection():
 			return None
 
 	def getSentence(self):
+		self._checkFiles()
 		lib = self._loadDLLs()
 		results = self._getResults(lib)
 		if results:

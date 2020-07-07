@@ -12,11 +12,15 @@ class YOLOv3Detection():
 		else:
 			self.imagePath = imagePath
 		if tiny:
-			self.config_file = self.baseDir + "./models/yolov3-tiny.cfg"
-			self.weights_file = self.baseDir + "./models/yolov3-tiny.weights"
+			self.configFile = self.baseDir + "./models/yolov3-tiny.cfg"
+			self.weightsFile = self.baseDir + "./models/yolov3-tiny.weights"
 		else:
-			self.config_file = self.baseDir + "./models/yolov3-tiny.cfg"
-			self.weights_file = self.baseDir + "./models/yolov3-tiny.weights"
+			self.configFile = self.baseDir + "./models/yolov3-tiny.cfg"
+			self.weightsFile = self.baseDir + "./models/yolov3-tiny.weights"
+
+		self.dllPaths = ["\\dlls\\opencv_core430.dll", "\\dlls\\opencv_imgproc430.dll", "\\dlls\\opencv_imgcodecs430.dll",
+						"\\dlls\\opencv_dnn430.dll", "\\dlls\\YOLOv3-DLL.dll"]
+		self.dllPaths = [self.baseDir + dllPath for dllPath in self.dllPaths]
 
 	# define singular and plural forms of class labels
 	CLASSES_SINGULAR = ['a person', 'a bicycle', 'a car', 'a motorbike', 'an aeroplane', 'a bus', 'a train',
@@ -53,15 +57,28 @@ class YOLOv3Detection():
 					("width", c_int),
 					("height", c_int), ]
 
+	def _checkFiles(self):
+		notFound = ""
+		if not os.path.exists(self.configFile):
+			notFound = notFound + f'\nobjectDetection(YOLOv3): Config file not found at {self.configFile}'
+
+		if not os.path.exists(self.weightsFile):
+			notFound = notFound + f'\nobjectDetection(YOLOv3): Weights file not found at {self.configFile}'
+
+		for dllPath in self.dllPaths:
+			if not os.path.exists(dllPath):
+				notFound = notFound + f'\nobjectDetection(YOLOv3): DLL file not found at {dllPath}'
+
+		if notFound != "":
+			raise FileNotFoundError(notFound)
+
 	def _loadDLLs(self):
 		# load dependant DLLs
-		opencv_core430 = CDLL(self.baseDir + "\\dlls\\opencv_core430.dll")
-		opencv_imgproc430 = CDLL(self.baseDir + "\\dlls\\opencv_imgproc430.dll")
-		opencv_imgcodecs430 = CDLL(self.baseDir + "\\dlls\\opencv_imgcodecs430.dll")
-		opencv_dnn430 = CDLL(self.baseDir + "\\dlls\\opencv_dnn430.dll")
+		for dllPath in self.dllPaths[:-1]:
+			_ = CDLL(dllPath)
 
 		# load required DLL
-		lib = CDLL(self.baseDir + "\\dlls\\YOLOv3-DLL.dll")
+		lib = CDLL(self.dllPaths[-1])
 		return lib
 
 	def _getResults(self, lib):
@@ -69,7 +86,7 @@ class YOLOv3Detection():
 		lib.doDetection.argtypes = [c_char_p, c_char_p, c_char_p]
 
 		# call 'doDetection' function and get number of objects detected
-		res = lib.doDetection(self.config_file.encode('utf-8'), self.weights_file.encode('utf-8'),
+		res = lib.doDetection(self.configFile.encode('utf-8'), self.weightsFile.encode('utf-8'),
 							self.imagePath.encode('utf-8'))
 		DetectedObjectsArray = self.Detection * res
 
@@ -87,6 +104,7 @@ class YOLOv3Detection():
 			return None
 
 	def getSentence(self):
+		self._checkFiles()
 		lib = self._loadDLLs()
 		results = self._getResults(lib)
 		if results:
