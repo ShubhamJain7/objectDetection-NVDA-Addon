@@ -1,12 +1,7 @@
 import globalPluginHandler
 from contentRecog import recogUi
-import os
-import  sys
 
-base_dir = os.path.dirname(os.path.dirname(__file__))
-sys.path.append(base_dir)
-
-from doObjectDetection import *
+from ._doObjectDetection import *
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 

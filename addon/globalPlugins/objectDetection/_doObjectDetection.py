@@ -3,8 +3,8 @@ import threading
 import tempfile
 import wx
 import contentRecog
-from .YOLOv3 import YOLOv3Detection
-from .DETR import DETRDetection
+from ._YOLOv3 import YOLOv3Detection
+from ._DETR import DETRDetection
 
 class doDetectionTinyYOLOv3(contentRecog.ContentRecognizer):
 
