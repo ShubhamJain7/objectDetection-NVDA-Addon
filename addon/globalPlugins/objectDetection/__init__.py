@@ -9,16 +9,16 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		x = doDetectionTinyYOLOv3()
 		recogUi.recognizeNavigatorObject(x)
 
-	def script_detectObjectsYOLOv3(self, gesture):
-		x = doDetectionYOLOv3()
-		recogUi.recognizeNavigatorObject(x)
+	# def script_detectObjectsYOLOv3(self, gesture):
+	# 	x = doDetectionYOLOv3()
+	# 	recogUi.recognizeNavigatorObject(x)
 
-	def script_detectObjectsDETR(self, gesture):
-		x = doDetectionDETR()
-		recogUi.recognizeNavigatorObject(x)
+	# def script_detectObjectsDETR(self, gesture):
+	# 	x = doDetectionDETR()
+	# 	recogUi.recognizeNavigatorObject(x)
 
 	__gestures={
-		"kb:Alt+NVDA+1": "detectObjectsTinyYOLOv3",
-		"kb:Alt+NVDA+2": "detectObjectsYOLOv3",
-		"kb:Alt+NVDA+3": "detectObjectsDETR"
+		"kb:Alt+NVDA+D": "detectObjectsTinyYOLOv3",
+		# "kb:Alt+NVDA+2": "detectObjectsYOLOv3",
+		# "kb:Alt+NVDA+3": "detectObjectsDETR"
 	}
