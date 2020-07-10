@@ -1,5 +1,5 @@
 # Object Detection
-----
+
 * Author: Shubham Dilip Jain
 * Download: https://github.com/ShubhamJain7/objectDetection-NVDA-Addon
 
@@ -22,7 +22,7 @@ Once the requirements are satisfied:
 2. Open a command line and navigate to the cloned repo
 3. Run the command `scons` in the directory containing the **sconstruct** file
 
-You can then install the add-on in NVDA by double clicking on the **.add-on** file while NVDA is running or goto NVDA->tools->manage add-ons->Install and the selecting the **.add-on** file.
+You can then install the add-on in NVDA by double clicking on the **.nvda-addon** file while NVDA is running or goto NVDA->tools->manage add-ons->Install and the selecting the **.nvda-addon** file.
 
 
 ### Developer notes
