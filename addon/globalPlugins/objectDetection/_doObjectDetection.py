@@ -1,3 +1,6 @@
+# Object Detection model specific detection modules
+# Copyright 2020 Shubham Dilip Jain, released under the AGPL-3.0 License
+
 import os
 import threading
 import tempfile

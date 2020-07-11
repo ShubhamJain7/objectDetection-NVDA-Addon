@@ -1,3 +1,6 @@
+# Object Detection global plugin main module
+# Copyright 2020 Shubham Dilip Jain, released under the AGPL-3.0 License
+
 import globalPluginHandler
 from contentRecog import recogUi
 

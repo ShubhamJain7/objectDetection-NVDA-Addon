@@ -1,3 +1,6 @@
+# Object Detection YOLOv3 model interface module
+# Copyright 2020 Shubham Dilip Jain, released under the AGPL-3.0 License
+
 import os
 from ctypes import *
 from collections import Counter
