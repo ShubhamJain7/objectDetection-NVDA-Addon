@@ -5,8 +5,15 @@ import globalPluginHandler
 from contentRecog import recogUi
 from scriptHandler import script
 from globalCommands import SCRCAT_VISION
+import ui
+import vision
+from visionEnhancementProviders.screenCurtain import ScreenCurtainSettings
 
 from ._doObjectDetection import *
+
+def isScreenCurtainEnabled():
+	return any([x.providerId == ScreenCurtainSettings.getId() for x in vision.handler.getActiveProviderInfos()])
+
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
@@ -17,8 +24,11 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		gesture="kb:Alt+NVDA+D",
 	)
 	def script_detectObjectsTinyYOLOv3(self, gesture):
-		x = doDetectionTinyYOLOv3()
-		recogUi.recognizeNavigatorObject(x)
+		if not isScreenCurtainEnabled():
+			x = doDetectionTinyYOLOv3()
+			recogUi.recognizeNavigatorObject(x)
+		else:
+			ui.message("Screen curtain is enabled. Disable screen curtain to use the object detection add-on.")
 
 	# def script_detectObjectsYOLOv3(self, gesture):
 	# 	x = doDetectionYOLOv3()

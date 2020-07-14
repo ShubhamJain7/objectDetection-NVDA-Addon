@@ -17,15 +17,13 @@ addon_info = {
 	"addon_summary": _("Object detection"),
 	# Add-on description
 	# Translators: Long description to be shown for this add-on on add-on information from add-ons manager
-	"addon_description": _(""" This add-on allows users to perform object-detection on image elements on their screen.
-		As a pre-release version, users have a choice between 3 object detection models that vary in size, speed and
-		accuracy."""),
+	"addon_description": _(""" This add-on allows users to perform object-detection on image elements on their screen."""),
 	# version
-	"addon_version": "0.1",
+	"addon_version": "0.2",
 	# Author(s)
 	"addon_author": u"Shubham Dilip Jain <shubhamdjain7@gmail.com>",
 	# URL for the add-on documentation support
-	"addon_url": None,
+	"addon_url": "https://github.com/ShubhamJain7/objectDetection-NVDA-Addon",
 	# Documentation file name
 	"addon_docFileName": "readme.html",
 	# Minimum NVDA version supported (e.g. "2018.3.0", minor version is optional)
