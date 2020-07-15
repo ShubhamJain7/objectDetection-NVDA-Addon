@@ -5,6 +5,7 @@ import os
 import threading
 import tempfile
 import wx
+import ui
 import contentRecog
 from ._YOLOv3 import YOLOv3Detection
 from ._DETR import DETRDetection
@@ -28,6 +29,8 @@ class doObjectDetection(contentRecog.ContentRecognizer):
 		finally:
 			os.remove(self._imagePath)
 		if self._onResult:
+			ui.message(result)
+			result = contentRecog.SimpleTextResult(result)
 			self._onResult(result)
 
 	def cancel(self):
@@ -40,16 +43,16 @@ class doObjectDetection(contentRecog.ContentRecognizer):
 class doDetectionTinyYOLOv3(doObjectDetection):
 	def detect(self, imagePath):
 		result = YOLOv3Detection(imagePath, tiny=True).getSentence()
-		return contentRecog.SimpleTextResult(result)
+		return result
 
 
-class doDetectionYOLOv3(doObjectDetection):
-	def detect(self, imagePath):
-		result = YOLOv3Detection(imagePath, tiny=False).getSentence()
-		return contentRecog.SimpleTextResult(result)
+# class doDetectionYOLOv3(doObjectDetection):
+# 	def detect(self, imagePath):
+# 		result = YOLOv3Detection(imagePath, tiny=False).getSentence()
+# 		return result
 
 
-class doDetectionDETR(doObjectDetection):
-	def detect(self, imagePath):
-		result = DETRDetection(imagePath).getSentence()
-		return contentRecog.SimpleTextResult(result)
+# class doDetectionDETR(doObjectDetection):
+# 	def detect(self, imagePath):
+# 		result = DETRDetection(imagePath).getSentence()
+# 		return result
