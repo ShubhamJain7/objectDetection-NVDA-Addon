@@ -9,8 +9,6 @@ from controlTypes import ROLE_GRAPHIC
 #: Keeps track of the recognition in progress, if any.
 _activeRecog = None
 
-#: Elements with width or height small than this value will not be processed
-_sizeThreshold = 128
 def recognizeNavigatorObject(recognizer):
 	"""User interface function to recognize content in the navigator object.
 	This should be called from a script or in response to a GUI action.
@@ -24,9 +22,7 @@ def recognizeNavigatorObject(recognizer):
 		ui.message(_("Already in a content recognition result"))
 		return
 	nav = api.getNavigatorObject()
-	if nav.role != ROLE_GRAPHIC:
-		ui.message("Currently focused element is not an image. Please try again with an image element.")
-		log.debug(f"(objectDetection) Navigation object role:{nav.role}")
+	if not recognizer.validateObject(nav):
 		return
 	# Translators: Reported when content recognition (e.g. OCR) is attempted,
 	# but the content is not visible.
@@ -37,9 +33,7 @@ def recognizeNavigatorObject(recognizer):
 		log.debugWarning("Object returned location %r" % nav.location)
 		ui.message(notVisibleMsg)
 		return
-	if width < _sizeThreshold or height < _sizeThreshold:
-		ui.message("Image too small to produce good results. Please try again with a larger image.")
-		log.debug(f"(objectDetection) Capture bounds: width={width}, height={height}.")
+	if not recognizer.validateBounds(left, top, width, height):
 		return
 	try:
 		imgInfo = RecogImageInfo.createFromRecognizer(left, top, width, height, recognizer)
