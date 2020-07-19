@@ -9,7 +9,7 @@ from controlTypes import ROLE_GRAPHIC
 #: Keeps track of the recognition in progress, if any.
 _activeRecog = None
 
-def recognizeNavigatorObject(recognizer):
+def recognizeNavigatorObject(recognizer, filterNonGraphic=True):
 	"""User interface function to recognize content in the navigator object.
 	This should be called from a script or in response to a GUI action.
 	@param recognizer: The content recognizer to use.
@@ -22,7 +22,7 @@ def recognizeNavigatorObject(recognizer):
 		ui.message(_("Already in a content recognition result"))
 		return
 	nav = api.getNavigatorObject()
-	if not recognizer.validateObject(nav):
+	if filterNonGraphic and not recognizer.validateObject(nav):
 		return
 	# Translators: Reported when content recognition (e.g. OCR) is attempted,
 	# but the content is not visible.
