@@ -4,6 +4,8 @@
 import os
 import threading
 import tempfile
+from typing import Any
+
 import wx
 import ui
 import contentRecog
@@ -17,6 +19,9 @@ from ._DETR import DETRDetection
 _sizeThreshold = 128
 
 class doObjectDetection(contentRecog.ContentRecognizer):
+	def __init__(self, resultHandlerClass):
+		self.resultHandlerClass = resultHandlerClass
+
 	def recognize(self, pixels, imgInfo, onResult):
 		bmp = wx.EmptyBitmap(imgInfo.recogWidth, imgInfo.recogHeight, 32)
 		bmp.CopyFromBuffer(pixels, wx.BitmapBufferFormat_RGB32)
@@ -35,8 +40,6 @@ class doObjectDetection(contentRecog.ContentRecognizer):
 		finally:
 			os.remove(self._imagePath)
 		if self._onResult:
-			ui.message(result)
-			result = contentRecog.SimpleTextResult(result)
 			self._onResult(result)
 
 	def cancel(self):
@@ -51,8 +54,17 @@ class doObjectDetection(contentRecog.ContentRecognizer):
 	def validateBounds(self, left, top, width, height):
 		return True
 
+	def createResultHandler(self, result: Any):
+		handler = self.resultHandlerClass(result)
+		handler.createVirtualWindow()
+		return handler
+
 
 class doDetectionTinyYOLOv3(doObjectDetection):
+	
+	def __init__(self, resultHandlerClass):
+		super(doDetectionTinyYOLOv3, self).__init__(resultHandlerClass)
+	
 	def detect(self, imagePath):
 		result = YOLOv3Detection(imagePath, tiny=True).getSentence()
 		return result

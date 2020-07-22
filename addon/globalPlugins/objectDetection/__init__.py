@@ -8,14 +8,34 @@ import ui
 import scriptHandler
 import vision
 from visionEnhancementProviders.screenCurtain import ScreenCurtainSettings
+from contentRecog.recogUi import RecogResultNVDAObject
 
 from ._doObjectDetection import *
-from ._resultUI import recognizeNavigatorObject 
-
+from ._resultUI import recognizeNavigatorObject
 
 def isScreenCurtainEnabled():
 	return any([x.providerId == ScreenCurtainSettings.getId() for x in vision.handler.getActiveProviderInfos()])
 
+
+class PresentResults():
+	def __init__(self, result):
+		self.result = result
+
+	def speakResult(self):
+		ui.message(self.result)
+
+	def createVirtualWindow(self):
+		result = contentRecog.SimpleTextResult(self.result)
+		resObj = RecogResultNVDAObject(result=result)
+		# This method queues an event to the main thread.
+		resObj.setFocus()
+
+	def speakResultAndCreateVirtualWindow(self):
+		ui.message(self.result)
+		result = contentRecog.SimpleTextResult(self.result)
+		resObj = RecogResultNVDAObject(result=result)
+		# This method queues an event to the main thread.
+		resObj.setFocus()
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
@@ -28,7 +48,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def script_detectObjectsTinyYOLOv3(self, gesture):
 		scriptCount = scriptHandler.getLastScriptRepeatCount()
 		if not isScreenCurtainEnabled():
-			x = doDetectionTinyYOLOv3()
+			x = doDetectionTinyYOLOv3(PresentResults)
 			# `Alt+NVDA+D` -> filter non-graphic elements
 			if scriptCount==0:
 				recognizeNavigatorObject(x, True)

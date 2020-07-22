@@ -1,13 +1,15 @@
+from typing import Optional
+
 import api
 import ui
 import screenBitmap
 from logHandler import log
 import queueHandler
-from contentRecog.recogUi import RecogResultNVDAObject, RecogImageInfo
-from controlTypes import ROLE_GRAPHIC
+from contentRecog import ContentRecognizer, RecogImageInfo
+from contentRecog.recogUi import RecogResultNVDAObject
 
 #: Keeps track of the recognition in progress, if any.
-_activeRecog = None
+_activeRecog: Optional[ContentRecognizer] = None
 
 def recognizeNavigatorObject(recognizer, filterNonGraphic=True):
 	"""User interface function to recognize content in the navigator object.
@@ -47,10 +49,12 @@ def recognizeNavigatorObject(recognizer, filterNonGraphic=True):
 	sb = screenBitmap.ScreenBitmap(imgInfo.recogWidth, imgInfo.recogHeight)
 	pixels = sb.captureImage(left, top, width, height)
 	_activeRecog = recognizer
+
 	recognizer.recognize(pixels, imgInfo, _recogOnResult)
 
 def _recogOnResult(result):
 	global _activeRecog
+	recognizer: ContentRecognizer = _activeRecog
 	_activeRecog = None
 	# This might get called from a background thread, so any UI calls must be queued to the main thread.
 	if isinstance(result, Exception):
@@ -59,6 +63,5 @@ def _recogOnResult(result):
 		queueHandler.queueFunction(queueHandler.eventQueue,
 			ui.message, _("Recognition failed"))
 		return
-	resObj = RecogResultNVDAObject(result=result)
-	# This method queues an event to the main thread.
-	resObj.setFocus()
+	if recognizer:
+		handler = recognizer.createResultHandler(result)
