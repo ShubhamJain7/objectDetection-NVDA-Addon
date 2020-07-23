@@ -14,9 +14,9 @@ from controlTypes import ROLE_GRAPHIC
 from ._YOLOv3 import YOLOv3Detection
 from ._DETR import DETRDetection
 
-
 #: Elements with width or height small than this value will not be processed
 _sizeThreshold = 128
+
 
 class doObjectDetection(contentRecog.ContentRecognizer):
 	def __init__(self, resultHandlerClass):
@@ -54,17 +54,15 @@ class doObjectDetection(contentRecog.ContentRecognizer):
 	def validateBounds(self, left, top, width, height):
 		return True
 
-	def createResultHandler(self, result: Any):
-		handler = self.resultHandlerClass(result)
-		handler.createVirtualWindow()
-		return handler
+	def getResultHandler(self, result: Any):
+		return self.resultHandlerClass(result)
 
 
 class doDetectionTinyYOLOv3(doObjectDetection):
-	
+
 	def __init__(self, resultHandlerClass):
 		super(doDetectionTinyYOLOv3, self).__init__(resultHandlerClass)
-	
+
 	def detect(self, imagePath):
 		result = YOLOv3Detection(imagePath, tiny=True).getSentence()
 		return result
@@ -82,7 +80,6 @@ class doDetectionTinyYOLOv3(doObjectDetection):
 			log.debug(f"(objectDetection) Capture bounds: width={width}, height={height}.")
 			return False
 		return True
-
 
 # class doDetectionYOLOv3(doObjectDetection):
 # 	def detect(self, imagePath):

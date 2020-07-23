@@ -64,4 +64,4 @@ def _recogOnResult(result):
 			ui.message, _("Recognition failed"))
 		return
 	if recognizer:
-		handler = recognizer.createResultHandler(result)
+		handler = recognizer.getResultHandler(result)
