@@ -4,6 +4,9 @@
 import os
 import threading
 import tempfile
+from typing import Any
+import concurrent.futures as cf
+
 import wx
 import ui
 import contentRecog
@@ -17,15 +20,19 @@ from ._DETR import DETRDetection
 _sizeThreshold = 128
 
 class doObjectDetection(contentRecog.ContentRecognizer):
+	def __init__(self, resultHandlerClass):
+		self.resultHandlerClass = resultHandlerClass
+
 	def recognize(self, pixels, imgInfo, onResult):
 		bmp = wx.EmptyBitmap(imgInfo.recogWidth, imgInfo.recogHeight, 32)
 		bmp.CopyFromBuffer(pixels, wx.BitmapBufferFormat_RGB32)
 		self._imagePath = tempfile.mktemp(prefix="nvda_ObjectDetect_", suffix=".jpg")
 		bmp.SaveFile(self._imagePath, wx.BITMAP_TYPE_JPEG)
-		self._onResult = onResult
-		t = threading.Thread(target=self._bgRecog)
-		t.daemon = True
-		t.start()
+		with cf.ThreadPoolExecutor() as executor:
+			future = executor.submit(self._bgRecog)
+			self.future = future
+			handler = future.result()
+			return handler
 
 	def _bgRecog(self):
 		try:
@@ -34,13 +41,11 @@ class doObjectDetection(contentRecog.ContentRecognizer):
 			result = e
 		finally:
 			os.remove(self._imagePath)
-		if self._onResult:
-			ui.message(result)
-			result = contentRecog.SimpleTextResult(result)
-			self._onResult(result)
+		return self.createResultHandler(result)
 
 	def cancel(self):
-		self._onResult = None
+		if self.future:
+			self.future.cancel()
 
 	def detect(self, imagePath):
 		raise NotImplementedError
@@ -51,8 +56,16 @@ class doObjectDetection(contentRecog.ContentRecognizer):
 	def validateBounds(self, left, top, width, height):
 		return True
 
+	def createResultHandler(self, result: Any):
+		handler = self.resultHandlerClass(result)
+		return handler
+
 
 class doDetectionTinyYOLOv3(doObjectDetection):
+	
+	def __init__(self, resultHandlerClass):
+		super(doDetectionTinyYOLOv3, self).__init__(resultHandlerClass)
+	
 	def detect(self, imagePath):
 		result = YOLOv3Detection(imagePath, tiny=True).getSentence()
 		return result
