@@ -16,16 +16,18 @@ from ._resultUI import recognizeNavigatorObject
 def isScreenCurtainEnabled():
 	return any([x.providerId == ScreenCurtainSettings.getId() for x in vision.handler.getActiveProviderInfos()])
 
+_previousResult = None
+
 class SpeakResult():
 	def __init__(self, result):
-		global _cachedResult
-		_cachedResult = result
+		global _previousResult
+		_previousResult = result
 		ui.message(result)
 
 class CreateVirtualResultWindow():
 	def __init__(self, result):
-		global _cachedResult
-		_cachedResult = result
+		global _previousResult
+		_previousResult = result
 		result = contentRecog.SimpleTextResult(result)
 		resObj = RecogResultNVDAObject(result=result)
 		# This method queues an event to the main thread.
@@ -52,6 +54,24 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 				recognizeNavigatorObject(x, False)
 		else:
 			ui.message("Screen curtain is enabled. Disable screen curtain to use the object detection add-on.")
+
+	@script(
+		description=_("Speak previous result"),
+		category=SCRCAT_VISION,
+		gesture="kb:Alt+NVDA+Q",
+	)
+	def script_speakPreviousResult(self, gesture):
+		global _previousResult
+		SpeakResult(_previousResult)
+
+	@script(
+		description=_("Create virtual window for previous result"),
+		category=SCRCAT_VISION,
+		gesture="kb:Alt+NVDA+W",
+	)
+	def script_createVirtualWindowPreviousResult(self, gesture):
+		global _previousResult
+		CreateVirtualResultWindow(_previousResult)
 
 	# def script_detectObjectsYOLOv3(self, gesture):
 	# 	x = doDetectionYOLOv3()
