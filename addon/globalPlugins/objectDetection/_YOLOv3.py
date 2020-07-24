@@ -4,6 +4,7 @@
 import os
 from ctypes import *
 from collections import Counter
+from ._detectionResult import Detection
 
 class YOLOv3Detection():
 
@@ -84,7 +85,7 @@ class YOLOv3Detection():
 		lib = CDLL(self.dllPaths[-1])
 		return lib
 
-	def _getResults(self, lib):
+	def _getDetections(self, lib):
 		lib.doDetection.restype = c_int
 		lib.doDetection.argtypes = [c_char_p, c_char_p, c_char_p]
 
@@ -106,10 +107,10 @@ class YOLOv3Detection():
 		else:
 			return None
 
-	def getSentence(self):
+	def _createSentence(self):
 		self._checkFiles()
 		lib = self._loadDLLs()
-		results = self._getResults(lib)
+		results = self._getDetections(lib)
 		if results:
 			# get class labels and their frequency counts
 			# assuming singular
@@ -142,3 +143,15 @@ class YOLOv3Detection():
 			return output_string
 		else:
 			return "Cannot identify any objects in the image."
+
+	def getResults(self):
+		lib = self._loadDLLs()
+		detections = self._getDetections(lib)
+		boxes = []
+		sentence = self._createSentence()
+		for detection in detections:
+			words = self.CLASSES_SINGULAR[detection.classId].split(" ")
+			classLabel = " ".join(words[1:]) if len(words)>1 else words[0]
+			boxes.append(Detection(classLabel, detection.x, detection.y, detection.width, detection.height))
+
+		return (sentence, boxes)

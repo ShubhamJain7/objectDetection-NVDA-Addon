@@ -1,35 +1,37 @@
 # Object Detection global plugin main module
 # Copyright 2020 Shubham Dilip Jain, released under the AGPL-3.0 License
-
 import globalPluginHandler
 from scriptHandler import script
 from globalCommands import SCRCAT_VISION
 import ui
 import scriptHandler
 import vision
+from typing import Optional
+
 from visionEnhancementProviders.screenCurtain import ScreenCurtainSettings
 from contentRecog.recogUi import RecogResultNVDAObject
 
 from ._doObjectDetection import *
 from ._resultUI import recognizeNavigatorObject
+from ._detectionResult import ObjectDetectionResults
 
 def isScreenCurtainEnabled():
 	return any([x.providerId == ScreenCurtainSettings.getId() for x in vision.handler.getActiveProviderInfos()])
 
-_previousResult = None
+_previousResult:Optional[ObjectDetectionResults] = None
 
 class SpeakResult():
-	def __init__(self, result):
+	def __init__(self, result:ObjectDetectionResults):
 		global _previousResult
 		_previousResult = result
-		ui.message(result)
+		ui.message(result.sentence)
 
 class CreateVirtualResultWindow():
-	def __init__(self, result):
+	def __init__(self, result:ObjectDetectionResults):
 		global _previousResult
 		_previousResult = result
-		result = contentRecog.SimpleTextResult(result)
-		resObj = RecogResultNVDAObject(result=result)
+		sentenceResult = contentRecog.SimpleTextResult(result.sentence)
+		resObj = RecogResultNVDAObject(result=sentenceResult)
 		# This method queues an event to the main thread.
 		resObj.setFocus()
 
@@ -56,7 +58,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			ui.message("Screen curtain is enabled. Disable screen curtain to use the object detection add-on.")
 
 	@script(
-		description=_("Speak previous result"),
+		description=_("Speak previous object detection result"),
 		category=SCRCAT_VISION,
 		gesture="kb:Alt+NVDA+Q",
 	)
@@ -65,18 +67,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		SpeakResult(_previousResult)
 
 	@script(
-		description=_("Create virtual window for previous result"),
+		description=_("Create virtual window with previous object detection result"),
 		category=SCRCAT_VISION,
 		gesture="kb:Alt+NVDA+W",
 	)
-	def script_createVirtualWindowPreviousResult(self, gesture):
+	def script_createVirtualPreviousResultWindow(self, gesture):
 		global _previousResult
 		CreateVirtualResultWindow(_previousResult)
-
-	# def script_detectObjectsYOLOv3(self, gesture):
-	# 	x = doDetectionYOLOv3()
-	# 	recogUi.recognizeNavigatorObject(x)
-
-	# def script_detectObjectsDETR(self, gesture):
-	# 	x = doDetectionDETR()
-	# 	recogUi.recognizeNavigatorObject(x)

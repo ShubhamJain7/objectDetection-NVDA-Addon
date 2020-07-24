@@ -11,6 +11,7 @@ import ui
 import contentRecog
 from logHandler import log
 from controlTypes import ROLE_GRAPHIC
+from ._detectionResult import ObjectDetectionResults
 from ._YOLOv3 import YOLOv3Detection
 from ._DETR import DETRDetection
 
@@ -64,7 +65,8 @@ class doDetectionTinyYOLOv3(doObjectDetection):
 		super(doDetectionTinyYOLOv3, self).__init__(resultHandlerClass)
 
 	def detect(self, imagePath):
-		result = YOLOv3Detection(imagePath, tiny=True).getSentence()
+		sentence, boxes = YOLOv3Detection(imagePath, tiny=True).getResults()
+		result = ObjectDetectionResults(sentence, boxes)
 		return result
 
 	def validateObject(self, nav):
@@ -80,14 +82,3 @@ class doDetectionTinyYOLOv3(doObjectDetection):
 			log.debug(f"(objectDetection) Capture bounds: width={width}, height={height}.")
 			return False
 		return True
-
-# class doDetectionYOLOv3(doObjectDetection):
-# 	def detect(self, imagePath):
-# 		result = YOLOv3Detection(imagePath, tiny=False).getSentence()
-# 		return result
-
-
-# class doDetectionDETR(doObjectDetection):
-# 	def detect(self, imagePath):
-# 		result = DETRDetection(imagePath).getSentence()
-# 		return result

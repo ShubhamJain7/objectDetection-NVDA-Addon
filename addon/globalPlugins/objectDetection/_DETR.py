@@ -4,6 +4,7 @@
 import os
 from ctypes import *
 from collections import Counter
+from ._detectionResult import Detection
 
 class DETRDetection():
 
@@ -78,7 +79,7 @@ class DETRDetection():
 		lib = CDLL(self.dllPaths[-1])
 		return lib
 
-	def _getResults(self, lib):
+	def _getDetections(self, lib):
 		# define return type and arguments of 'doDetection' function
 		lib.doDetection.restype = c_int
 		lib.doDetection.argtypes = [c_wchar_p, c_char_p]
@@ -100,10 +101,10 @@ class DETRDetection():
 		else:
 			return None
 
-	def getSentence(self):
+	def _createSentence(self):
 		self._checkFiles()
 		lib = self._loadDLLs()
-		results = self._getResults(lib)
+		results = self._getDetections(lib)
 		if results:
 			# get class labels and their frequency counts
 			# assuming singular
@@ -136,3 +137,19 @@ class DETRDetection():
 			return output_string
 		else:
 			return "Cannot identify any objects in the image."
+
+	def getResults(self):
+		lib = self._loadDLLs()
+		detections = self._getDetections(lib)
+		boxes = []
+		sentence = self._createSentence()
+		for detection in detections:
+			words = self.CLASSES_SINGULAR[detection.classId].split(" ")
+			classLabel = " ".join(words[1:]) if len(words) > 1 else words[0]
+			x = detection.x1
+			y = detection.y1
+			width = detection.x2 - detection.x1
+			height = detection.y2 - detection.y1
+			boxes.append(Detection(classLabel, x, y, width, height))
+
+		return (sentence, boxes)
