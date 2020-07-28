@@ -10,10 +10,12 @@ from typing import Optional
 
 from visionEnhancementProviders.screenCurtain import ScreenCurtainSettings
 from contentRecog.recogUi import RecogResultNVDAObject
+from locationHelper import RectLTWH
 
 from ._doObjectDetection import *
 from ._resultUI import recognizeNavigatorObject
 from ._detectionResult import ObjectDetectionResults
+from ._objectHighlighter import ObjectHighlighter
 
 def isScreenCurtainEnabled():
 	return any([x.providerId == ScreenCurtainSettings.getId() for x in vision.handler.getActiveProviderInfos()])
@@ -74,3 +76,17 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def script_createVirtualPreviousResultWindow(self, gesture):
 		global _previousResult
 		CreateVirtualResultWindow(_previousResult)
+
+	@script(
+		description=_("Draw Bounding boxes around detected objects"),
+		category=SCRCAT_VISION,
+		gesture="kb:Alt+NVDA+E",
+	)
+	def script_drawBoundingBoxes(self, gesture):
+		global _previousResult
+		if _previousResult:
+			boxes = _previousResult.boxes
+			oh = ObjectHighlighter()
+			for box in boxes:
+				oh.addObjectRect(box.label, RectLTWH(box.x, box.y, box.width, box.height).toLTRB())
+			ui.message("Bounding boxes presented")
