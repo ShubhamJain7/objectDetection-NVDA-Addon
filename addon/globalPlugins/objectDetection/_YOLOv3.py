@@ -105,7 +105,7 @@ class YOLOv3Detection():
 			_ = lib.getDetections(objects, res)
 			return objects
 		else:
-			return None
+			return []
 
 	def _createSentence(self):
 		self._checkFiles()
