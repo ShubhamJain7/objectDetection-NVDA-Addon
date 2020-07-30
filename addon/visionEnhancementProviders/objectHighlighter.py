@@ -170,11 +170,11 @@ class ObjectHighlightWindow(CustomWindow):
 class ObjectHighlighterSettings(providerBase.VisionEnhancementProviderSettings):
 	@classmethod
 	def getId(cls) -> str:
-		return "NVDAHighlighter"
+		return "ObjectHighlighter"
 
 	@classmethod
 	def getDisplayName(cls) -> str:
-		return _("Object Highlight")
+		return _("Object Highlighter")
 
 	def _get_supportedSettings(self) -> SupportedSettingType:
 		return list()
@@ -257,20 +257,13 @@ class ObjectHighlighter(providerBase.VisionEnhancementProvider):
 			log.exception("Exception in NVDA Highlighter thread")
 
 	def handleFocusChange(self, obj):
-		pass
-		# self.updateContextRect(context=Context.FOCUS, obj=obj)
-		# if not api.isObjectInActiveTreeInterceptor(obj):
-		# 	self.contextToRectMap.pop(Context.BROWSEMODE, None)
-		# else:
-		# 	self.handleBrowseModeMove()
+		self.terminate()
 
 	def handleReviewMove(self, context):
-		pass
-		# self.updateContextRect(context=Context.NAVIGATOR)
+		self.terminate()
 
 	def handleBrowseModeMove(self, obj=None):
-		pass
-		# self.updateContextRect(context=Context.BROWSEMODE)
+		self.terminate()
 
 	def refresh(self):
 		"""Refreshes the screen positions of the enabled highlights.

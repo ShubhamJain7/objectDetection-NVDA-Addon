@@ -24,6 +24,7 @@ class doObjectDetection(contentRecog.ContentRecognizer):
 		self.resultHandlerClass = resultHandlerClass
 
 	def recognize(self, pixels, imgInfo, onResult):
+		self.imgInfo = imgInfo
 		bmp = wx.EmptyBitmap(imgInfo.recogWidth, imgInfo.recogHeight, 32)
 		bmp.CopyFromBuffer(pixels, wx.BitmapBufferFormat_RGB32)
 		self._imagePath = tempfile.mktemp(prefix="nvda_ObjectDetect_", suffix=".jpg")
@@ -66,7 +67,7 @@ class doDetectionTinyYOLOv3(doObjectDetection):
 
 	def detect(self, imagePath):
 		sentence, boxes = YOLOv3Detection(imagePath, tiny=True).getResults()
-		result = ObjectDetectionResults(sentence, boxes)
+		result = ObjectDetectionResults(self.imgInfo, sentence, boxes)
 		return result
 
 	def validateObject(self, nav):

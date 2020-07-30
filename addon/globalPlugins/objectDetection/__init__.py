@@ -3,11 +3,9 @@
 import globalPluginHandler
 from scriptHandler import script
 from globalCommands import SCRCAT_VISION
-import ui
 import scriptHandler
 import vision
 from typing import Optional
-
 from visionEnhancementProviders.screenCurtain import ScreenCurtainSettings
 from contentRecog.recogUi import RecogResultNVDAObject
 from locationHelper import RectLTWH
@@ -15,7 +13,14 @@ from locationHelper import RectLTWH
 from ._doObjectDetection import *
 from ._resultUI import recognizeNavigatorObject
 from ._detectionResult import ObjectDetectionResults
-from ._objectHighlighter import ObjectHighlighter
+
+
+providers = vision.handler.getProviderList()
+for provider in providers:
+	if provider.displayName == 'Object Highlighter':
+		providerClass = provider.providerClass
+oh = providerClass()
+
 
 def isScreenCurtainEnabled():
 	return any([x.providerId == ScreenCurtainSettings.getId() for x in vision.handler.getActiveProviderInfos()])
@@ -86,7 +91,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		global _previousResult
 		if _previousResult:
 			boxes = _previousResult.boxes
-			oh = ObjectHighlighter()
+			imgInfo = _previousResult.imgInfo
 			for box in boxes:
-				oh.addObjectRect(box.label, RectLTWH(box.x, box.y, box.width, box.height).toLTRB())
+				x = box.x + imgInfo.screenLeft
+				y = box.y + imgInfo.screenTop
+				oh.addObjectRect(box.label, RectLTWH(x, y, box.width, box.height).toLTRB())
 			ui.message("Bounding boxes presented")

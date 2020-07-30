@@ -1,3 +1,5 @@
+from contentRecog import RecogImageInfo
+
 class Detection():
 	def __init__(self, label:str, x:int, y:int, width:int, height:int):
 		self.label = label
@@ -8,6 +10,7 @@ class Detection():
 
 
 class ObjectDetectionResults():
-	def __init__(self, sentence:str, boxes:iter):
+	def __init__(self, imgInfo:RecogImageInfo, sentence:str, boxes:iter):
+		self.imgInfo = imgInfo
 		self.sentence = sentence
 		self.boxes = boxes
