@@ -39,20 +39,15 @@ class HighlightStyle(
 		This value may also be negative.
 	@type margin: int
 	"""
+COLORS = [RGB(0xE7, 0x4C, 0x3C), RGB(0x9B, 0x59, 0xB6), RGB(0x34, 0x98, 0xDB), RGB(0x2C, 0x3E, 0x50),
+		RGB(0xE6, 0x7E, 0x22), RGB(0xC0, 0x39, 0x2B), RGB(0x16, 0xA0, 0x85), RGB(0x27, 0xAE, 0x60),
+		RGB(0x2E, 0xCC, 0x71), RGB(0xF1, 0xC4, 0x0F), RGB(0xF3, 0x9C, 0x12) ,RGB(0xEC, 0xF0, 0xF1),
+		RGB(0xD3, 0x54, 0x00), RGB(0x29, 0x80, 0xB9), RGB(0x7F, 0x8C, 0x8D), RGB(0x8E, 0x44, 0xAD),]
 
-BLUE = RGB(0x03, 0x36, 0xFF)
-PINK = RGB(0xFF, 0x02, 0x66)
-YELLOW = RGB(0xFF, 0xDE, 0x03)
-DASH_BLUE = HighlightStyle(BLUE, 5, winGDI.DashStyleDash, 5)
-SOLID_PINK = HighlightStyle(PINK, 5, winGDI.DashStyleSolid, 5)
-SOLID_BLUE = HighlightStyle(BLUE, 5, winGDI.DashStyleSolid, 5)
-SOLID_YELLOW = HighlightStyle(YELLOW, 2, winGDI.DashStyleSolid, 2)
-
-
-class ObjectHighlightWindow(CustomWindow):
+class ObjectDetectionHighlightWindow(CustomWindow):
 	transparency = 0xff
-	className = u"ObjectHighLighter"
-	windowName = u"Object Highlighter Window"
+	className = u"ObjectDetectionHighLighter"
+	windowName = u"Object Detection Highlighter Window"
 	windowStyle = winUser.WS_POPUP | winUser.WS_DISABLED
 	extendedWindowStyle = (
 		# Ensure that the window is on top of all other windows
@@ -76,7 +71,7 @@ class ObjectHighlightWindow(CustomWindow):
 
 	def updateLocationForDisplays(self):
 		if vision._isDebug():
-			log.debug("Updating ObjectHighLighter window location for displays")
+			log.debug("Updating ObjectDetectionHighLighter window location for displays")
 		displays = [wx.Display(i).GetGeometry() for i in range(wx.Display.GetCount())]
 		screenWidth, screenHeight, minPos = getTotalWidthAndHeightAndMinimumPosition(displays)
 		# Hack: Windows has a "feature" that will stop desktop shortcut hotkeys from working
@@ -99,7 +94,7 @@ class ObjectHighlightWindow(CustomWindow):
 
 	def __init__(self, highlighter):
 		if vision._isDebug():
-			log.debug("initializing ObjectHighLighter window")
+			log.debug("initializing ObjectDetectionHighLighter window")
 		super().__init__(
 			windowName=self.windowName,
 			windowStyle=self.windowStyle,
@@ -142,8 +137,8 @@ class ObjectHighlightWindow(CustomWindow):
 			return
 		with winUser.paint(self.handle) as hdc:
 			with winGDI.GDIPlusGraphicsContext(hdc) as graphicsContext:
-				for label, rect in highlighter.objectRects:
-					HighlightStyle = SOLID_BLUE
+				for i, (label, rect) in enumerate(highlighter.objectRects):
+					borderStyle = HighlightStyle(COLORS[i % len(COLORS)], 5, winGDI.DashStyleSolid, 5)
 					# Before calculating logical coordinates,
 					# make sure the rectangle falls within the highlighter window
 					rect = rect.intersection(self.location)
@@ -153,13 +148,13 @@ class ObjectHighlightWindow(CustomWindow):
 						log.debugWarning("", exc_info=True)
 					rect = rect.toClient(self.handle)
 					try:
-						rect = rect.expandOrShrink(HighlightStyle.margin)
+						rect = rect.expandOrShrink(borderStyle.margin)
 					except RuntimeError:
 						pass
 					with winGDI.GDIPlusPen(
-						HighlightStyle.color.toGDIPlusARGB(),
-						HighlightStyle.width,
-						HighlightStyle.style
+						borderStyle.color.toGDIPlusARGB(),
+						borderStyle.width,
+						borderStyle.style
 					) as pen:
 						winGDI.gdiPlusDrawRectangle(graphicsContext, pen, *rect.toLTWH())
 
@@ -167,26 +162,27 @@ class ObjectHighlightWindow(CustomWindow):
 		winUser.user32.InvalidateRect(self.handle, None, True)
 
 
-class ObjectHighlighterSettings(providerBase.VisionEnhancementProviderSettings):
+class ObjectDetectionHighlighterSettings(providerBase.VisionEnhancementProviderSettings):
 	@classmethod
 	def getId(cls) -> str:
-		return "ObjectHighlighter"
+		return "ObjectDetectionHighlighter"
 
 	@classmethod
 	def getDisplayName(cls) -> str:
-		return _("Object Highlighter")
+		return _("Object Detection Highlighter")
 
 	def _get_supportedSettings(self) -> SupportedSettingType:
 		return list()
 
-class ObjectHighlighter(providerBase.VisionEnhancementProvider):
+
+class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
 	_refreshInterval = 100
-	customWindowClass = ObjectHighlightWindow
-	_settings = ObjectHighlighterSettings()
+	customWindowClass = ObjectDetectionHighlightWindow
+	_settings = ObjectDetectionHighlighterSettings()
 	_window: Optional[customWindowClass] = None
 
 	@classmethod  # override
-	def getSettings(cls) -> ObjectHighlighterSettings:
+	def getSettings(cls) -> ObjectDetectionHighlighterSettings:
 		return cls._settings
 
 	@classmethod  # override
@@ -202,12 +198,10 @@ class ObjectHighlighter(providerBase.VisionEnhancementProvider):
 			extensionPoints: EventExtensionPoints
 	) -> None:
 		extensionPoints.post_focusChange.register(self.handleFocusChange)
-		extensionPoints.post_reviewMove.register(self.handleReviewMove)
-		extensionPoints.post_browseModeMove.register(self.handleBrowseModeMove)
 
 	def __init__(self):
 		super().__init__()
-		log.debug("Starting ObjectHighLighter")
+		log.debug("Starting ObjectDetectionHighLighter")
 		self.objectRects = []
 		winGDI.gdiPlusInitialize()
 		self._highlighterThread = threading.Thread(
@@ -223,7 +217,7 @@ class ObjectHighlighter(providerBase.VisionEnhancementProvider):
 			raise RuntimeError("Highlighter thread wasn't able to initialize correctly")
 
 	def terminate(self):
-		log.debug("Terminating ObjectHighLighter")
+		log.debug("Terminating ObjectDetectionHighLighter")
 		if self._highlighterThread and self._window and self._window.handle:
 			if not winUser.user32.PostThreadMessageW(self._highlighterThread.ident, winUser.WM_QUIT, 0, 0):
 				raise WinError()
@@ -237,7 +231,7 @@ class ObjectHighlighter(providerBase.VisionEnhancementProvider):
 	def _run(self):
 		try:
 			if vision._isDebug():
-				log.debug("Starting ObjectHighLighter thread")
+				log.debug("Starting ObjectDetectionHighLighter thread")
 
 			window = self._window = self.customWindowClass(self)
 			timer = winUser.WinTimer(window.handle, 0, self._refreshInterval, None)
@@ -250,20 +244,16 @@ class ObjectHighlighter(providerBase.VisionEnhancementProvider):
 				winUser.user32.TranslateMessage(byref(msg))
 				winUser.user32.DispatchMessageW(byref(msg))
 			if vision._isDebug():
-				log.debug("Quit message received on ObjectHighLighter thread")
+				log.debug("Quit message received on ObjectDetectionHighLighter thread")
 			timer.terminate()
 			window.destroy()
 		except Exception:
-			log.exception("Exception in NVDA Highlighter thread")
+			log.exception("Exception in Object Detection Highlighter thread")
 
 	def handleFocusChange(self, obj):
-		self.terminate()
+		if self.objectRects:
+			self.objectRects.clear()
 
-	def handleReviewMove(self, context):
-		self.terminate()
-
-	def handleBrowseModeMove(self, obj=None):
-		self.terminate()
 
 	def refresh(self):
 		"""Refreshes the screen positions of the enabled highlights.
@@ -274,4 +264,4 @@ class ObjectHighlighter(providerBase.VisionEnhancementProvider):
 	def addObjectRect(self, label:str, rect:RectLTWH):
 		self.objectRects.append((label ,rect))
 
-VisionEnhancementProvider = ObjectHighlighter
+VisionEnhancementProvider = ObjectDetectionHighlighter

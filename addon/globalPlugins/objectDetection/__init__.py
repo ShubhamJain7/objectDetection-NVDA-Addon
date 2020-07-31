@@ -1,5 +1,6 @@
 # Object Detection global plugin main module
 # Copyright 2020 Shubham Dilip Jain, released under the AGPL-3.0 License
+
 import globalPluginHandler
 from scriptHandler import script
 from globalCommands import SCRCAT_VISION
@@ -8,24 +9,20 @@ import vision
 from typing import Optional
 from visionEnhancementProviders.screenCurtain import ScreenCurtainSettings
 from contentRecog.recogUi import RecogResultNVDAObject
-from locationHelper import RectLTWH
 
 from ._doObjectDetection import *
 from ._resultUI import recognizeNavigatorObject
 from ._detectionResult import ObjectDetectionResults
 
-
-providers = vision.handler.getProviderList()
-for provider in providers:
-	if provider.displayName == 'Object Highlighter':
-		providerClass = provider.providerClass
-oh = providerClass()
+from visionEnhancementProviders.objectDetectionHighlighter import ObjectDetectionHighlighter
+from locationHelper import RectLTWH
 
 
 def isScreenCurtainEnabled():
 	return any([x.providerId == ScreenCurtainSettings.getId() for x in vision.handler.getActiveProviderInfos()])
 
 _previousResult:Optional[ObjectDetectionResults] = None
+
 
 class SpeakResult():
 	def __init__(self, result:ObjectDetectionResults):
@@ -92,8 +89,16 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if _previousResult:
 			boxes = _previousResult.boxes
 			imgInfo = _previousResult.imgInfo
+
+			providerId = ObjectDetectionHighlighter.getSettings().getId()
+			providerInfo = vision.handler.getProviderInfo(providerId)
+			odh = vision.handler.getProviderInstance(providerInfo)
+			if not odh:
+				vision.handler.initializeProvider(providerInfo)
+				odh = vision.handler.getProviderInstance(providerInfo)
+
 			for box in boxes:
 				x = box.x + imgInfo.screenLeft
 				y = box.y + imgInfo.screenTop
-				oh.addObjectRect(box.label, RectLTWH(x, y, box.width, box.height).toLTRB())
+				odh.addObjectRect(box.label, RectLTWH(x, y, box.width, box.height).toLTRB())
 			ui.message("Bounding boxes presented")
