@@ -15,7 +15,7 @@ from ._resultUI import recognizeNavigatorObject
 from ._detectionResult import ObjectDetectionResults
 
 from visionEnhancementProviders.objectDetectionHighlighter import ObjectDetectionHighlighter
-from locationHelper import RectLTWH
+from locationHelper import RectLTRB
 
 
 def isScreenCurtainEnabled():
@@ -98,7 +98,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 				odh = vision.handler.getProviderInstance(providerInfo)
 
 			for box in boxes:
-				x = box.x + imgInfo.screenLeft
-				y = box.y + imgInfo.screenTop
-				odh.addObjectRect(box.label, RectLTWH(x, y, box.width, box.height).toLTRB())
+				left = box.x + imgInfo.screenLeft
+				top = box.y + imgInfo.screenTop
+				right = left + box.width
+				bottom = top + box.height
+				odh.addObjectRect(box.label, RectLTRB(left, top, right, bottom))
 			ui.message("Bounding boxes presented")

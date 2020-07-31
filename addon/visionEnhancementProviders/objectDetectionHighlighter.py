@@ -10,13 +10,14 @@ from ctypes.wintypes import COLORREF, MSG
 import winUser
 from logHandler import log
 from mouseHandler import getTotalWidthAndHeightAndMinimumPosition
-from locationHelper import RectLTWH
+from locationHelper import RectLTRB, RectLTWH
 from collections import namedtuple
 import threading
 import winGDI
 import weakref
 from colors import RGB
 import core
+import ui
 
 
 class HighlightStyle(
@@ -197,12 +198,14 @@ class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
 			self,
 			extensionPoints: EventExtensionPoints
 	) -> None:
+		extensionPoints.post_mouseMove.register(self.handleMouseMove)
 		extensionPoints.post_focusChange.register(self.handleFocusChange)
 
 	def __init__(self):
 		super().__init__()
 		log.debug("Starting ObjectDetectionHighLighter")
 		self.objectRects = []
+		self.announce = []
 		winGDI.gdiPlusInitialize()
 		self._highlighterThread = threading.Thread(
 			name=f"{self.__class__.__module__}.{self.__class__.__qualname__}",
@@ -254,6 +257,17 @@ class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
 		if self.objectRects:
 			self.objectRects.clear()
 
+	def handleMouseMove(self, obj, x, y):
+		for i in range(len(self.objectRects)):
+			label, rect = self.objectRects[i]
+			if rect.left < x < rect.right and rect.top < y <rect.bottom:
+				if self.announce[i]:
+					ui.message(label)
+					self.announce[i] = False
+			else:
+				if not self.announce[i]:
+					self.announce[i] = True
+
 
 	def refresh(self):
 		"""Refreshes the screen positions of the enabled highlights.
@@ -261,7 +275,8 @@ class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
 		if self._window and self._window.handle:
 			self._window.refresh()
 
-	def addObjectRect(self, label:str, rect:RectLTWH):
+	def addObjectRect(self, label:str, rect:RectLTRB):
 		self.objectRects.append((label ,rect))
+		self.announce.append(True)
 
 VisionEnhancementProvider = ObjectDetectionHighlighter
