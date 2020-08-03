@@ -199,7 +199,6 @@ class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
 			extensionPoints: EventExtensionPoints
 	) -> None:
 		extensionPoints.post_mouseMove.register(self.handleMouseMove)
-		extensionPoints.post_focusChange.register(self.handleFocusChange)
 
 	def __init__(self):
 		super().__init__()
@@ -228,7 +227,7 @@ class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
 				self._highlighterThread.join()
 			self._highlighterThread = None
 		winGDI.gdiPlusTerminate()
-		self.objectRects.clear()
+		self.clearObjectRects()
 		super().terminate()
 
 	def _run(self):
@@ -253,10 +252,6 @@ class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
 		except Exception:
 			log.exception("Exception in Object Detection Highlighter thread")
 
-	def handleFocusChange(self, obj):
-		if self.objectRects:
-			self.objectRects.clear()
-
 	def handleMouseMove(self, obj, x, y):
 		for i in range(len(self.objectRects)):
 			label, rect = self.objectRects[i]
@@ -268,7 +263,6 @@ class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
 				if not self.announce[i]:
 					self.announce[i] = True
 
-
 	def refresh(self):
 		"""Refreshes the screen positions of the enabled highlights.
 		"""
@@ -278,5 +272,9 @@ class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
 	def addObjectRect(self, label:str, rect:RectLTRB):
 		self.objectRects.append((label ,rect))
 		self.announce.append(True)
+
+	def clearObjectRects(self):
+		if self.objectRects:
+			self.objectRects.clear()
 
 VisionEnhancementProvider = ObjectDetectionHighlighter

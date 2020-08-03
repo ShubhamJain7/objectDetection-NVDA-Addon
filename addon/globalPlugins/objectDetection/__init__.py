@@ -8,10 +8,9 @@ import scriptHandler
 import vision
 from typing import Optional
 from visionEnhancementProviders.screenCurtain import ScreenCurtainSettings
-from contentRecog.recogUi import RecogResultNVDAObject
 
 from ._doObjectDetection import *
-from ._resultUI import recognizeNavigatorObject
+from ._resultUI import recognizeNavigatorObject, VirtualResultWindow
 from ._detectionResult import ObjectDetectionResults
 
 from visionEnhancementProviders.objectDetectionHighlighter import ObjectDetectionHighlighter
@@ -24,18 +23,35 @@ def isScreenCurtainEnabled():
 _previousResult:Optional[ObjectDetectionResults] = None
 
 
-class SpeakResult():
+class PresentResults():
 	def __init__(self, result:ObjectDetectionResults):
 		global _previousResult
 		_previousResult = result
-		ui.message(result.sentence)
+		sentence = _previousResult.sentence
+		boxes = _previousResult.boxes
+		imgInfo = _previousResult.imgInfo
 
-class CreateVirtualResultWindow():
-	def __init__(self, result:ObjectDetectionResults):
-		global _previousResult
-		_previousResult = result
+		ui.message(sentence)
+
+		if not boxes:
+			return
+
+		providerId = ObjectDetectionHighlighter.getSettings().getId()
+		providerInfo = vision.handler.getProviderInfo(providerId)
+		odh = vision.handler.getProviderInstance(providerInfo)
+		if not odh:
+			vision.handler.initializeProvider(providerInfo)
+			odh = vision.handler.getProviderInstance(providerInfo)
+
+		for box in boxes:
+			left = box.x + imgInfo.screenLeft
+			top = box.y + imgInfo.screenTop
+			right = left + box.width
+			bottom = top + box.height
+			odh.addObjectRect(box.label, RectLTRB(left, top, right, bottom))
+
 		sentenceResult = contentRecog.SimpleTextResult(result.sentence)
-		resObj = RecogResultNVDAObject(result=sentenceResult)
+		resObj = VirtualResultWindow(result=sentenceResult, objectDetectionHandler=odh)
 		# This method queues an event to the main thread.
 		resObj.setFocus()
 
@@ -51,7 +67,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def script_detectObjectsTinyYOLOv3(self, gesture):
 		scriptCount = scriptHandler.getLastScriptRepeatCount()
 		if not isScreenCurtainEnabled():
-			x = doDetectionTinyYOLOv3(SpeakResult)
+			x = doDetectionTinyYOLOv3(PresentResults)
 			# `Alt+NVDA+D` -> filter non-graphic elements
 			if scriptCount==0:
 				recognizeNavigatorObject(x, True)
@@ -62,45 +78,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			ui.message("Screen curtain is enabled. Disable screen curtain to use the object detection add-on.")
 
 	@script(
-		description=_("Speak previous object detection result"),
+		description=_("Present previous object detection result"),
 		category=SCRCAT_VISION,
 		gesture="kb:Alt+NVDA+Q",
 	)
 	def script_speakPreviousResult(self, gesture):
 		global _previousResult
-		SpeakResult(_previousResult)
-
-	@script(
-		description=_("Create virtual window with previous object detection result"),
-		category=SCRCAT_VISION,
-		gesture="kb:Alt+NVDA+W",
-	)
-	def script_createVirtualPreviousResultWindow(self, gesture):
-		global _previousResult
-		CreateVirtualResultWindow(_previousResult)
-
-	@script(
-		description=_("Draw Bounding boxes around detected objects"),
-		category=SCRCAT_VISION,
-		gesture="kb:Alt+NVDA+E",
-	)
-	def script_drawBoundingBoxes(self, gesture):
-		global _previousResult
-		if _previousResult:
-			boxes = _previousResult.boxes
-			imgInfo = _previousResult.imgInfo
-
-			providerId = ObjectDetectionHighlighter.getSettings().getId()
-			providerInfo = vision.handler.getProviderInfo(providerId)
-			odh = vision.handler.getProviderInstance(providerInfo)
-			if not odh:
-				vision.handler.initializeProvider(providerInfo)
-				odh = vision.handler.getProviderInstance(providerInfo)
-
-			for box in boxes:
-				left = box.x + imgInfo.screenLeft
-				top = box.y + imgInfo.screenTop
-				right = left + box.width
-				bottom = top + box.height
-				odh.addObjectRect(box.label, RectLTRB(left, top, right, bottom))
-			ui.message("Bounding boxes presented")
+		PresentResults(_previousResult)
