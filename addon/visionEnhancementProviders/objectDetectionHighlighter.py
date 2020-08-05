@@ -4,7 +4,7 @@ from vision.visionHandlerExtensionPoints import EventExtensionPoints
 from vision import providerBase
 from windowUtils import CustomWindow
 import wx
-from typing import Optional
+from typing import Optional, List
 from ctypes import byref, WinError
 from ctypes.wintypes import COLORREF, MSG
 import winUser
@@ -18,7 +18,7 @@ import weakref
 from colors import RGB
 import core
 import ui
-
+import driverHandler
 
 class HighlightStyle(
 		namedtuple("HighlightStyle", ("color", "width", "style", "margin"))
@@ -164,6 +164,9 @@ class ObjectDetectionHighlightWindow(CustomWindow):
 
 
 class ObjectDetectionHighlighterSettings(providerBase.VisionEnhancementProviderSettings):
+
+	filterNonGraphicElements = True
+
 	@classmethod
 	def getId(cls) -> str:
 		return "ObjectDetectionHighlighter"
@@ -173,7 +176,14 @@ class ObjectDetectionHighlighterSettings(providerBase.VisionEnhancementProviderS
 		return _("Object Detection Highlighter")
 
 	def _get_supportedSettings(self) -> SupportedSettingType:
-		return list()
+		settings = [
+			driverHandler.BooleanDriverSetting(
+				"filterNonGraphicElements",
+				"filter non-graphic elements",
+				defaultVal=True
+			)
+		]
+		return settings
 
 
 class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):

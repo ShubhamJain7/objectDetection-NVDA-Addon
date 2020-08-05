@@ -4,7 +4,6 @@
 import globalPluginHandler
 from scriptHandler import script
 from globalCommands import SCRCAT_VISION
-import scriptHandler
 import vision
 from typing import Optional
 from visionEnhancementProviders.screenCurtain import ScreenCurtainSettings
@@ -18,7 +17,10 @@ from locationHelper import RectLTRB
 
 
 def isScreenCurtainEnabled():
-	return any([x.providerId == ScreenCurtainSettings.getId() for x in vision.handler.getActiveProviderInfos()])
+	isEnabled = any([x.providerId == ScreenCurtainSettings.getId() for x in vision.handler.getActiveProviderInfos()])
+	if isEnabled:
+		ui.message("Screen curtain is enabled. Disable screen curtain to use the object detection add-on.")
+	return isEnabled
 
 _previousResult:Optional[ObjectDetectionResults] = None
 
@@ -65,17 +67,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		gesture="kb:Alt+NVDA+D",
 	)
 	def script_detectObjectsTinyYOLOv3(self, gesture):
-		scriptCount = scriptHandler.getLastScriptRepeatCount()
 		if not isScreenCurtainEnabled():
 			x = doDetectionTinyYOLOv3(PresentResults)
-			# `Alt+NVDA+D` -> filter non-graphic elements
-			if scriptCount==0:
-				recognizeNavigatorObject(x, True)
-			# `Alt+NVDA+D+D+..` -> don't filter non-graphic elements
-			else:
-				recognizeNavigatorObject(x, False)
-		else:
-			ui.message("Screen curtain is enabled. Disable screen curtain to use the object detection add-on.")
+			filterNonGraphic = ObjectDetectionHighlighter.getSettings().filterNonGraphicElements
+			recognizeNavigatorObject(x, filterNonGraphic=filterNonGraphic)
 
 	@script(
 		description=_("Present previous object detection result"),
