@@ -10,7 +10,8 @@ class Detection():
 
 
 class ObjectDetectionResults():
-	def __init__(self, imgInfo:RecogImageInfo, sentence:str, boxes:iter):
+	def __init__(self, imageHash:int, imgInfo:RecogImageInfo, sentence:str, boxes:iter):
+		self.imageHash = imageHash
 		self.imgInfo = imgInfo
 		self.sentence = sentence
 		self.boxes = boxes

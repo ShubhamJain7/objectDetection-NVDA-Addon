@@ -209,6 +209,7 @@ class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
 			extensionPoints: EventExtensionPoints
 	) -> None:
 		extensionPoints.post_mouseMove.register(self.handleMouseMove)
+		extensionPoints.post_focusChange.register(self.handleFocusChange)
 
 	def __init__(self):
 		super().__init__()
@@ -272,6 +273,9 @@ class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
 			else:
 				if not self.announce[i]:
 					self.announce[i] = True
+
+	def handleFocusChange(self, obj):
+		self.clearObjectRects()
 
 	def refresh(self):
 		"""Refreshes the screen positions of the enabled highlights.

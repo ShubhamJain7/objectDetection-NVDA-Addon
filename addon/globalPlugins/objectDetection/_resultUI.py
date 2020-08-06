@@ -26,10 +26,9 @@ class VirtualResultWindow(cursorManager.CursorManager, NVDAObjects.window.Window
 	name = _("Result")
 	treeInterceptor = None
 
-	def __init__(self, result=None, objectDetectionHandler=None):
+	def __init__(self, result=None):
 		self.parent = parent = api.getFocusObject()
 		self.result = result
-		self.objectDetectionHandler = objectDetectionHandler
 		self._selection = self.makeTextInfo(textInfos.POSITION_FIRST)
 		super(VirtualResultWindow, self).__init__(windowHandle=parent.windowHandle)
 
@@ -69,7 +68,6 @@ class VirtualResultWindow(cursorManager.CursorManager, NVDAObjects.window.Window
 		eventHandler.queueEvent("gainFocus", self)
 
 	def script_exit(self, gesture):
-		self.objectDetectionHandler.clearObjectRects()
 		eventHandler.executeEvent("gainFocus", self.parent)
 	# Translators: Describes a command.
 	script_exit.__doc__ = _("Dismiss the recognition result")
@@ -89,9 +87,6 @@ class VirtualResultWindow(cursorManager.CursorManager, NVDAObjects.window.Window
 		# Translators: Reported when a user tries to use a find command when it isn't supported.
 		ui.message(_("Not supported in this document"))
 
-	def event_loseFocus(self):
-		self.objectDetectionHandler.clearObjectRects()
-
 	__gestures = {
 		"kb:escape": "exit",
 	}
@@ -99,7 +94,7 @@ class VirtualResultWindow(cursorManager.CursorManager, NVDAObjects.window.Window
 #: Keeps track of the recognition in progress, if any.
 _activeRecog: Optional[ContentRecognizer] = None
 
-def recognizeNavigatorObject(recognizer, filterNonGraphic=True):
+def recognizeNavigatorObject(recognizer, filterNonGraphic=True, cachedResults=None):
 	"""User interface function to recognize content in the navigator object.
 	This should be called from a script or in response to a GUI action.
 	@param recognizer: The content recognizer to use.
@@ -112,6 +107,7 @@ def recognizeNavigatorObject(recognizer, filterNonGraphic=True):
 		ui.message(_("Already in a content recognition result"))
 		return
 	nav = api.getNavigatorObject()
+
 	if filterNonGraphic and not recognizer.validateObject(nav):
 		return
 	# Translators: Reported when content recognition (e.g. OCR) is attempted,
@@ -132,13 +128,29 @@ def recognizeNavigatorObject(recognizer, filterNonGraphic=True):
 		return
 	if _activeRecog:
 		_activeRecog.cancel()
-	# Translators: Reporting when content recognition (e.g. OCR) begins.
-	ui.message(_("Recognizing"))
+
 	sb = screenBitmap.ScreenBitmap(imgInfo.recogWidth, imgInfo.recogHeight)
 	pixels = sb.captureImage(left, top, width, height)
+
+	rowHashes = []
+	for i in range(imgInfo.recogWidth):
+		row = []
+		for j in range(imgInfo.recogHeight):
+			row.append(pixels[j][i].rgbRed) #column major order
+		rowHashes.append(hash(str(row)))
+
+	imageHash = hash(str(rowHashes))
+	for result in cachedResults:
+		if result.imageHash == imageHash:
+			handler = recognizer.getResultHandler(result)
+			return
+
+	# Translators: Reporting when content recognition (e.g. OCR) begins.
+	ui.message(_("Recognizing"))
+
 	_activeRecog = recognizer
 
-	recognizer.recognize(pixels, imgInfo, _recogOnResult)
+	recognizer.recognize(imageHash, pixels, imgInfo, _recogOnResult)
 
 def _recogOnResult(result):
 	global _activeRecog

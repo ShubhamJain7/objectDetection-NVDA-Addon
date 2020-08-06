@@ -6,6 +6,7 @@ from scriptHandler import script
 from globalCommands import SCRCAT_VISION
 import vision
 from typing import Optional
+from collections import deque
 from visionEnhancementProviders.screenCurtain import ScreenCurtainSettings
 
 from ._doObjectDetection import *
@@ -22,16 +23,16 @@ def isScreenCurtainEnabled():
 		ui.message("Screen curtain is enabled. Disable screen curtain to use the object detection add-on.")
 	return isEnabled
 
-_previousResult:Optional[ObjectDetectionResults] = None
-
+_cachedResults = deque(maxlen=10)
 
 class PresentResults():
 	def __init__(self, result:ObjectDetectionResults):
-		global _previousResult
-		_previousResult = result
-		sentence = _previousResult.sentence
-		boxes = _previousResult.boxes
-		imgInfo = _previousResult.imgInfo
+		self.result = result
+		self.cacheResult()
+
+		sentence = result.sentence
+		boxes = result.boxes
+		imgInfo = result.imgInfo
 
 		ui.message(sentence)
 
@@ -52,10 +53,15 @@ class PresentResults():
 			bottom = top + box.height
 			odh.addObjectRect(box.label, RectLTRB(left, top, right, bottom))
 
-		sentenceResult = contentRecog.SimpleTextResult(result.sentence)
-		resObj = VirtualResultWindow(result=sentenceResult, objectDetectionHandler=odh)
-		# This method queues an event to the main thread.
-		resObj.setFocus()
+	def cacheResult(self):
+		global  _cachedResults
+		alreadyCached = False
+		for cachedResult in _cachedResults:
+			if self.result.imageHash == cachedResult.imageHash:
+				alreadyCached = True
+				break
+		if not alreadyCached:
+			_cachedResults.appendleft(self.result)
 
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
@@ -67,16 +73,21 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		gesture="kb:Alt+NVDA+D",
 	)
 	def script_detectObjectsTinyYOLOv3(self, gesture):
+		global _cachedResults
 		if not isScreenCurtainEnabled():
-			x = doDetectionTinyYOLOv3(PresentResults)
+			recognizer = doDetectionTinyYOLOv3(PresentResults)
 			filterNonGraphic = ObjectDetectionHighlighter.getSettings().filterNonGraphicElements
-			recognizeNavigatorObject(x, filterNonGraphic=filterNonGraphic)
+			recognizeNavigatorObject(recognizer, filterNonGraphic=filterNonGraphic, cachedResults=_cachedResults)
 
 	@script(
-		description=_("Present previous object detection result"),
+		description=_("Present object detection result in a virtual window"),
 		category=SCRCAT_VISION,
-		gesture="kb:Alt+NVDA+Q",
+		gesture="kb:Alt+NVDA+V",
 	)
-	def script_speakPreviousResult(self, gesture):
-		global _previousResult
-		PresentResults(_previousResult)
+	def script_virtualResultWindow(self, gesture):
+		global _cachedResults
+		lastResult = _cachedResults[-1]
+		sentenceResult = contentRecog.SimpleTextResult(lastResult.sentence)
+		resObj = VirtualResultWindow(result=sentenceResult)
+		# This method queues an event to the main thread.
+		resObj.setFocus()
