@@ -1,32 +1,33 @@
 # Object Detection
 
 * Author: Shubham Dilip Jain
-* Download: https://github.com/ShubhamJain7/objectDetection-NVDA-Addon
+* Download: https://github.com/ShubhamJain7/objectDetection-NVDA-Addon/releases
 
-This add-on allows users to perform object detection on an image element present on their screen. The result is presented as a sentence of the form "The image contains a `x`, `y's` and a `z`".
+This add-on allows users to perform object detection on image elements present on their screen and get results in the form of a sentence and bounding boxes drawn around the detected objects. Users can move their mouse pointer or finger (in case of touch screens) inside a bounding box to hear the object label. The result is first announced to the user and if the user wishes, it can also be presented in a virtual, browseable window that allows users to access the result character-by-character, word-by-word, as a whole and even copy the result. This add-on works well only with "natural images" of people, animals and some common objects.
 
 ### Usage
 ----
-Detection is triggered by pressing Alt+NVDA+D. When the detection is complete, "Result Document" is announced. Users can then access the result as a navigator object by pressing CTRL+arrow keys. Press ESC to escape the result.
+After installing, the user must first set their preferred gestures at __Preferences->Input gestures->Vision__. There are only two gestures, one for performing detection on a currently focused image and another for accessing the result in a virtual, browseable window. 
+Keying the first gesture triggers the object detection process. The user first hears "Recognizing" and then a sentence form of the result is announced whenever it is available (this may take a few seconds). Along with this announcement, bounding boxes are also drawn around the detected objects. Users can move their mouse pointer or finger (in case of touch screens) to announce the object label. The object label is only announced once when the bounding box is entered. The box must be re-entered for subsequent announcements. These bounding boxes only disappear when the focus shifts to another element.
+Keying the second gesture opens up a virtual browseable window containing the same sentence form result. Users can use navigation keys in this window to browse the result letter-by-letter, word-by-word, as a whole or even copy it. Users must escape this window before starting another object detection process. This can be done by pressing the `ESC` key or shifting focus to another element.
+Users can also prevent the object detection process from starting on non-graphic elements by checking the `filter non-graphic elements` option under __Preferences->Settings->Vision->Object detection add-on__. This prevents users from accidentally starting the object detection process on elements that do not contain images and will produce bad results. Unchecking it allows users to perform detections on elements that may contain images but fail to report the same.
+
 
 ### Building it yourself
 ----
 Requirements:
-* a Python distribution (2.7 or greater is recommended). Check the [Python Website](http://www.python.org) for Windows Installers.
-* Scons - [Website](http://www.scons.org/) - version 2.1.0 or greater. Install it using **easy_install** or grab an windows installer from the website.
-* GNU Gettext tools, if you want to have localization support for your add-on - Recommended. Any Linux distro or cygwin have those installed. You can find windows builds [here](http://gnuwin32.sourceforge.net/downlinks/gettext.php).
-* Markdown-2.0.1 or greater, if you want to convert documentation files to HTML documents. You can [Download Markdown](https://pypi.org/project/Markdown/) or get it using `easy_install markdown`.
+* [Python 3](http://www.python.org) for Windows. See website for installers.
+* [Scons](http://www.scons.org/) - Can be installed by running `pip install Scons` or using a windows installer from the website.
+* [Markdown](https://pypi.org/project/Markdown/) - Can be installed by running `pip install Markdown`.
 
 Once the requirements are satisfied:
 1. Clone this repo
 2. Open a command line and navigate to the cloned repo
 3. Run the command `scons` in the directory containing the **sconstruct** file
 
-You can then install the add-on in NVDA by double clicking on the **.nvda-addon** file while NVDA is running or goto NVDA->tools->manage add-ons->Install and the selecting the **.nvda-addon** file.
-
+You can then install the add-on in NVDA by double-clicking on the **.nvda-addon** file while NVDA is running or goto NVDA->tools->manage add-ons->Install and the selecting the **.nvda-addon** file.
 
 ### Developer notes
 ----
-This add-on makes use of the [Tiny-YOLOv3-darknet](https://pjreddie.com/darknet/yolo/) model for object detection. It also contains code for using other versions of the YOLOv3 model and the [DE⫶TR](https://github.com/facebookresearch/detr) model, these have been turned off at the moment, until final decisions about which model to use are made. You can download the config and weights file of any YOLOv3 model and replace the Tiny model in `addon/globalPlugins/objectDetection/models` and use that instead (you may need to rename the files or change the code in `addon/globalPlugins/objectDetection/_YOLOv3.py` a bit for it to work). The DE⫶TR model must be converted to ONNX before use. There is no direct download for it but it is fairly easy to convert using PyTorch's `torch.onnx.export`.
-All models rely [OpenCV 4.3.0](https://opencv.org/), the required DLL's of which can be found at `addon/globalPlugins/objectDetection/dlls`. Appart from OpenCV, the DE⫶TR model also uses [ONNX Runtime 1.3.0](https://github.com/microsoft/onnxruntime) to run, whose DLL can be found at the same location. 
-The DLL files that interface with the models themselves, `YOLOv3-DLL.dll` and `DETR-DLL.dll`, can be built from [here](https://github.com/ShubhamJain7/YOLOv3-DLL) and [here](https://github.com/ShubhamJain7/DETR-DLL) respectively. 
+This add-on makes use of the [YOLOv3-darknet](https://pjreddie.com/darknet/yolo/) model for object detection. You can download the config and weights file of any YOLOv3 model and replace the existing model in `addon/globalPlugins/objectDetection/models` and use that instead (you must ensure that the config and weights file are named `yolov3.cfg` and `yolov3.weights` respectively, for this to work). The larger models are better at detecting objects but at a cost of time taken. In general, a medium-sized model, such as the one packaged in this add-on (YOLOv3-416) is the best choice.
+The model relies [OpenCV 4.3.0](https://opencv.org/), the required DLL's of which can be found at `addon/globalPlugins/objectDetection/dlls`. The `YOLOv3-DLL.dll` file interface with the model itself and can be found at or built from [here](https://github.com/ShubhamJain7/YOLOv3-DLL).

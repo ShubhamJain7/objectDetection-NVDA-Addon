@@ -44,9 +44,9 @@ class HighlightStyle(
 
 
 COLORS = [RGB(0xE7, 0x4C, 0x3C), RGB(0x9B, 0x59, 0xB6), RGB(0x34, 0x98, 0xDB), RGB(0x2C, 0x3E, 0x50),
-		  RGB(0xE6, 0x7E, 0x22), RGB(0xC0, 0x39, 0x2B), RGB(0x16, 0xA0, 0x85), RGB(0x27, 0xAE, 0x60),
-		  RGB(0x2E, 0xCC, 0x71), RGB(0xF1, 0xC4, 0x0F), RGB(0xF3, 0x9C, 0x12), RGB(0xEC, 0xF0, 0xF1),
-		  RGB(0xD3, 0x54, 0x00), RGB(0x29, 0x80, 0xB9), RGB(0x7F, 0x8C, 0x8D), RGB(0x8E, 0x44, 0xAD)]
+		RGB(0xE6, 0x7E, 0x22), RGB(0xC0, 0x39, 0x2B), RGB(0x16, 0xA0, 0x85), RGB(0x27, 0xAE, 0x60),
+		RGB(0x2E, 0xCC, 0x71), RGB(0xF1, 0xC4, 0x0F), RGB(0xF3, 0x9C, 0x12), RGB(0xEC, 0xF0, 0xF1),
+		RGB(0xD3, 0x54, 0x00), RGB(0x29, 0x80, 0xB9), RGB(0x7F, 0x8C, 0x8D), RGB(0x8E, 0x44, 0xAD)]
 
 
 class ObjectDetectionHighlightWindow(CustomWindow):
@@ -167,16 +167,16 @@ class ObjectDetectionHighlightWindow(CustomWindow):
 		winUser.user32.InvalidateRect(self.handle, None, True)
 
 
-class ObjectDetectionHighlighterSettings(providerBase.VisionEnhancementProviderSettings):
+class ObjectDetectionSettings(providerBase.VisionEnhancementProviderSettings):
 	filterNonGraphicElements = True
 
 	@classmethod
 	def getId(cls) -> str:
-		return "ObjectDetectionHighlighter"
+		return "ObjectDetection"
 
 	@classmethod
 	def getDisplayName(cls) -> str:
-		return _("Object Detection Highlighter")
+		return _("Object detection add-on")
 
 	def _get_supportedSettings(self) -> SupportedSettingType:
 		settings = [
@@ -189,14 +189,14 @@ class ObjectDetectionHighlighterSettings(providerBase.VisionEnhancementProviderS
 		return settings
 
 
-class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
+class ObjectDetection(providerBase.VisionEnhancementProvider):
 	_refreshInterval = 100
 	customWindowClass = ObjectDetectionHighlightWindow
-	_settings = ObjectDetectionHighlighterSettings()
+	_settings = ObjectDetectionSettings()
 	_window: Optional[customWindowClass] = None
 
 	@classmethod  # override
-	def getSettings(cls) -> ObjectDetectionHighlighterSettings:
+	def getSettings(cls) -> ObjectDetectionSettings:
 		return cls._settings
 
 	@classmethod  # override
@@ -216,7 +216,7 @@ class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
 
 	def __init__(self):
 		super().__init__()
-		log.debug("Starting ObjectDetectionHighLighter")
+		log.debug("Starting ObjectDetection")
 		self.objectRects = []
 		self.announce = []
 		winGDI.gdiPlusInitialize()
@@ -233,7 +233,7 @@ class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
 			raise RuntimeError("Highlighter thread wasn't able to initialize correctly")
 
 	def terminate(self):
-		log.debug("Terminating ObjectDetectionHighLighter")
+		log.debug("Terminating ObjectDetection")
 		if self._highlighterThread and self._window and self._window.handle:
 			if not winUser.user32.PostThreadMessageW(self._highlighterThread.ident, winUser.WM_QUIT, 0, 0):
 				raise WinError()
@@ -247,7 +247,7 @@ class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
 	def _run(self):
 		try:
 			if vision._isDebug():
-				log.debug("Starting ObjectDetectionHighLighter thread")
+				log.debug("Starting ObjectDetection thread")
 
 			window = self._window = self.customWindowClass(self)
 			timer = winUser.WinTimer(window.handle, 0, self._refreshInterval, None)
@@ -260,11 +260,11 @@ class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
 				winUser.user32.TranslateMessage(byref(msg))
 				winUser.user32.DispatchMessageW(byref(msg))
 			if vision._isDebug():
-				log.debug("Quit message received on ObjectDetectionHighLighter thread")
+				log.debug("Quit message received on ObjectDetection thread")
 			timer.terminate()
 			window.destroy()
 		except Exception:
-			log.exception("Exception in Object Detection Highlighter thread")
+			log.exception("Exception in ObjectDetection thread")
 
 	def handleMouseMove(self, obj, x, y):
 		for i in range(len(self.objectRects)):
@@ -295,4 +295,4 @@ class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
 			self.objectRects.clear()
 
 
-VisionEnhancementProvider = ObjectDetectionHighlighter
+VisionEnhancementProvider = ObjectDetection

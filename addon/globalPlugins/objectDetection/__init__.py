@@ -14,7 +14,7 @@ from ._doObjectDetection import DoDetectionYOLOv3
 from ._resultUI import recognizeNavigatorObject, VirtualResultWindow
 from ._detectionResult import ObjectDetectionResults
 
-from visionEnhancementProviders.objectDetectionHighlighter import ObjectDetectionHighlighter
+from visionEnhancementProviders.objectDetection import ObjectDetection
 from locationHelper import RectLTRB
 
 
@@ -41,15 +41,15 @@ class PresentResults():
 		if not boxes:
 			return
 
-		providerId = ObjectDetectionHighlighter.getSettings().getId()
+		providerId = ObjectDetection.getSettings().getId()
 		providerInfo = vision.handler.getProviderInfo(providerId)
-		odh = vision.handler.getProviderInstance(providerInfo)
-		if not odh:
+		oh = vision.handler.getProviderInstance(providerInfo)
+		if not oh:
 			vision.handler.initializeProvider(providerInfo)
-			odh = vision.handler.getProviderInstance(providerInfo)
+			oh = vision.handler.getProviderInstance(providerInfo)
 
 		for box in boxes:
-			odh.addObjectRect(box.label, RectLTRB(box.left, box.top, box.right, box.bottom))
+			oh.addObjectRect(box.label, RectLTRB(box.left, box.top, box.right, box.bottom))
 
 	def cacheResult(self):
 		global _cachedResults
@@ -67,18 +67,18 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	@script(
 		# Translators: Input trigger to perform object detection on focused image
 		description=_("Perform object detection on focused image"),
-		category=SCRCAT_VISION,
+		category=SCRCAT_VISION
 	)
 	def script_detectObjectsTinyYOLOv3(self, gesture):
 		global _cachedResults
 		if not isScreenCurtainEnabled():
 			recognizer = DoDetectionYOLOv3(PresentResults)
-			filterNonGraphic = ObjectDetectionHighlighter.getSettings().filterNonGraphicElements
+			filterNonGraphic = ObjectDetection.getSettings().filterNonGraphicElements
 			recognizeNavigatorObject(recognizer, filterNonGraphic=filterNonGraphic,
 									cachedResults=_cachedResults)
 
 	@script(
-		description=_("Present object detection result in a virtual window"),
+		description=_("Present object detection result in a broweable, virtual window"),
 		category=SCRCAT_VISION,
 	)
 	def script_virtualResultWindow(self, gesture):
