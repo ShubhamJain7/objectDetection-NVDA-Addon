@@ -8,23 +8,18 @@ from ._detectionResult import Detection
 
 class YOLOv3Detection():
 
-	def __init__(self, imagePath, tiny=False):
+	def __init__(self, imagePath):
 		self.baseDir = os.path.abspath(os.path.dirname(__file__))
 
-		if not os.path.exists(imagePath):
-			return None
-		else:
-			self.imagePath = imagePath
-		if tiny:
-			self.configFile = self.baseDir + "./models/yolov3-tiny.cfg"
-			self.weightsFile = self.baseDir + "./models/yolov3-tiny.weights"
-		else:
-			self.configFile = self.baseDir + "./models/yolov3-tiny.cfg"
-			self.weightsFile = self.baseDir + "./models/yolov3-tiny.weights"
+		self.imagePath = imagePath
+		self.configFile = self.baseDir + "/models/yolov3.cfg"
+		self.weightsFile = self.baseDir + "/models/yolov3.weights"
 
 		self.dllPaths = ["\\dlls\\opencv_core430.dll", "\\dlls\\opencv_imgproc430.dll", "\\dlls\\opencv_imgcodecs430.dll",
 						"\\dlls\\opencv_dnn430.dll", "\\dlls\\YOLOv3-DLL.dll"]
 		self.dllPaths = [self.baseDir + dllPath for dllPath in self.dllPaths]
+
+		self._checkFiles()
 
 	# define singular and plural forms of class labels
 	CLASSES_SINGULAR = ['a person', 'a bicycle', 'a car', 'a motorbike', 'an aeroplane', 'a bus', 'a train',
@@ -63,11 +58,14 @@ class YOLOv3Detection():
 
 	def _checkFiles(self):
 		notFound = ""
+		if not os.path.exists(self.imagePath):
+			notFound = notFound + f'\nobjectDetection(YOLOv3): image not found at {self.imagePath}'
+
 		if not os.path.exists(self.configFile):
 			notFound = notFound + f'\nobjectDetection(YOLOv3): Config file not found at {self.configFile}'
 
 		if not os.path.exists(self.weightsFile):
-			notFound = notFound + f'\nobjectDetection(YOLOv3): Weights file not found at {self.configFile}'
+			notFound = notFound + f'\nobjectDetection(YOLOv3): Weights file not found at {self.weightsFile}'
 
 		for dllPath in self.dllPaths:
 			if not os.path.exists(dllPath):

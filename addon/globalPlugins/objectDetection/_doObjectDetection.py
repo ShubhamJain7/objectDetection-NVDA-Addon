@@ -13,13 +13,12 @@ from logHandler import log
 from controlTypes import ROLE_GRAPHIC
 from ._detectionResult import ObjectDetectionResults
 from ._YOLOv3 import YOLOv3Detection
-from ._DETR import DETRDetection
 
 #: Elements with width or height small than this value will not be processed
 _sizeThreshold = 128
 
 
-class doObjectDetection(contentRecog.ContentRecognizer):
+class DoDetectionYOLOv3(contentRecog.ContentRecognizer):
 	def __init__(self, resultHandlerClass):
 		self.resultHandlerClass = resultHandlerClass
 
@@ -49,25 +48,7 @@ class doObjectDetection(contentRecog.ContentRecognizer):
 		self._onResult = None
 
 	def detect(self, imagePath):
-		raise NotImplementedError
-
-	def validateObject(self, nav):
-		return True
-
-	def validateBounds(self, left, top, width, height):
-		return True
-
-	def getResultHandler(self, result: Any):
-		return self.resultHandlerClass(result)
-
-
-class doDetectionTinyYOLOv3(doObjectDetection):
-
-	def __init__(self, resultHandlerClass):
-		super(doDetectionTinyYOLOv3, self).__init__(resultHandlerClass)
-
-	def detect(self, imagePath):
-		sentence, boxes = YOLOv3Detection(imagePath, tiny=True).getResults()
+		sentence, boxes = YOLOv3Detection(imagePath).getResults()
 		result = ObjectDetectionResults(self.imageHash, self.imgInfo, sentence, boxes)
 		return result
 
@@ -84,3 +65,6 @@ class doDetectionTinyYOLOv3(doObjectDetection):
 			log.debug(f"(objectDetection) Capture bounds: width={width}, height={height}.")
 			return False
 		return True
+
+	def getResultHandler(self, result: Any):
+		return self.resultHandlerClass(result)

@@ -5,11 +5,12 @@ import globalPluginHandler
 from scriptHandler import script
 from globalCommands import SCRCAT_VISION
 import vision
-from typing import Optional
 from collections import deque
 from visionEnhancementProviders.screenCurtain import ScreenCurtainSettings
+import ui
+from contentRecog import SimpleTextResult
 
-from ._doObjectDetection import *
+from ._doObjectDetection import DoDetectionYOLOv3
 from ._resultUI import recognizeNavigatorObject, VirtualResultWindow
 from ._detectionResult import ObjectDetectionResults
 
@@ -70,7 +71,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def script_detectObjectsTinyYOLOv3(self, gesture):
 		global _cachedResults
 		if not isScreenCurtainEnabled():
-			recognizer = doDetectionTinyYOLOv3(PresentResults)
+			recognizer = DoDetectionYOLOv3(PresentResults)
 			filterNonGraphic = ObjectDetectionHighlighter.getSettings().filterNonGraphicElements
 			recognizeNavigatorObject(recognizer, filterNonGraphic=filterNonGraphic, cachedResults=_cachedResults)
 
@@ -84,7 +85,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if len(_cachedResults)==0:
 			return
 		lastResult = _cachedResults[0]
-		sentenceResult = contentRecog.SimpleTextResult(lastResult.sentence)
+		sentenceResult = SimpleTextResult(lastResult.sentence)
 		resObj = VirtualResultWindow(result=sentenceResult)
 		# This method queues an event to the main thread.
 		resObj.setFocus()
