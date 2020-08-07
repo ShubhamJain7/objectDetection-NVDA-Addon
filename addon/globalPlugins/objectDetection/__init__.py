@@ -24,10 +24,12 @@ def isScreenCurtainEnabled():
 		ui.message("Screen curtain is enabled. Disable screen curtain to use the object detection add-on.")
 	return isEnabled
 
+
 _cachedResults = deque(maxlen=10)
 
+
 class PresentResults():
-	def __init__(self, result:ObjectDetectionResults):
+	def __init__(self, result: ObjectDetectionResults):
 		self.result = result
 		self.cacheResult()
 
@@ -50,7 +52,7 @@ class PresentResults():
 			odh.addObjectRect(box.label, RectLTRB(box.left, box.top, box.right, box.bottom))
 
 	def cacheResult(self):
-		global  _cachedResults
+		global _cachedResults
 		alreadyCached = False
 		for cachedResult in _cachedResults:
 			if self.result.imageHash == cachedResult.imageHash:
@@ -66,23 +68,22 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		# Translators: Input trigger to perform object detection on focused image
 		description=_("Perform object detection on focused image"),
 		category=SCRCAT_VISION,
-		gesture="kb:Alt+NVDA+D",
 	)
 	def script_detectObjectsTinyYOLOv3(self, gesture):
 		global _cachedResults
 		if not isScreenCurtainEnabled():
 			recognizer = DoDetectionYOLOv3(PresentResults)
 			filterNonGraphic = ObjectDetectionHighlighter.getSettings().filterNonGraphicElements
-			recognizeNavigatorObject(recognizer, filterNonGraphic=filterNonGraphic, cachedResults=_cachedResults)
+			recognizeNavigatorObject(recognizer, filterNonGraphic=filterNonGraphic,
+									cachedResults=_cachedResults)
 
 	@script(
 		description=_("Present object detection result in a virtual window"),
 		category=SCRCAT_VISION,
-		gesture="kb:Alt+NVDA+V",
 	)
 	def script_virtualResultWindow(self, gesture):
 		global _cachedResults
-		if len(_cachedResults)==0:
+		if len(_cachedResults) == 0:
 			return
 		lastResult = _cachedResults[0]
 		sentenceResult = SimpleTextResult(lastResult.sentence)

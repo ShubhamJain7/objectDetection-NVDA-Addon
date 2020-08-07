@@ -69,6 +69,7 @@ class VirtualResultWindow(cursorManager.CursorManager, NVDAObjects.window.Window
 
 	def script_exit(self, gesture):
 		eventHandler.executeEvent("gainFocus", self.parent)
+
 	# Translators: Describes a command.
 	script_exit.__doc__ = _("Dismiss the recognition result")
 
@@ -91,8 +92,10 @@ class VirtualResultWindow(cursorManager.CursorManager, NVDAObjects.window.Window
 		"kb:escape": "exit",
 	}
 
+
 #: Keeps track of the recognition in progress, if any.
 _activeRecog: Optional[ContentRecognizer] = None
+
 
 def recognizeNavigatorObject(recognizer, filterNonGraphic=True, cachedResults=None):
 	"""User interface function to recognize content in the navigator object.
@@ -119,7 +122,7 @@ def recognizeNavigatorObject(recognizer, filterNonGraphic=True, cachedResults=No
 		log.debugWarning("Object returned location %r" % nav.location)
 		ui.message(notVisibleMsg)
 		return
-	if not recognizer.validateBounds(left, top, width, height):
+	if not recognizer.validateBounds(nav.location):
 		return
 	try:
 		imgInfo = RecogImageInfo.createFromRecognizer(left, top, width, height, recognizer)
@@ -136,7 +139,7 @@ def recognizeNavigatorObject(recognizer, filterNonGraphic=True, cachedResults=No
 	for i in range(imgInfo.recogWidth):
 		row = []
 		for j in range(imgInfo.recogHeight):
-			row.append(pixels[j][i].rgbRed) #column major order
+			row.append(pixels[j][i].rgbRed)  # column major order
 		rowHashes.append(hash(str(row)))
 
 	imageHash = hash(str(rowHashes))
@@ -152,6 +155,7 @@ def recognizeNavigatorObject(recognizer, filterNonGraphic=True, cachedResults=No
 
 	recognizer.recognize(imageHash, pixels, imgInfo, _recogOnResult)
 
+
 def _recogOnResult(result):
 	global _activeRecog
 	recognizer: ContentRecognizer = _activeRecog
@@ -160,8 +164,7 @@ def _recogOnResult(result):
 	if isinstance(result, Exception):
 		# Translators: Reported when recognition (e.g. OCR) fails.
 		log.error("Recognition failed: %s" % result)
-		queueHandler.queueFunction(queueHandler.eventQueue,
-			ui.message, _("Recognition failed"))
+		queueHandler.queueFunction(queueHandler.eventQueue, ui.message, _("Recognition failed"))
 		return
 	if recognizer:
 		handler = recognizer.getResultHandler(result)

@@ -10,6 +10,7 @@ import wx
 import ui
 import contentRecog
 from logHandler import log
+from locationHelper import RectLTWH
 from controlTypes import ROLE_GRAPHIC
 from ._detectionResult import ObjectDetectionResults
 from ._YOLOv3 import YOLOv3Detection
@@ -47,22 +48,23 @@ class DoDetectionYOLOv3(contentRecog.ContentRecognizer):
 	def cancel(self):
 		self._onResult = None
 
-	def detect(self, imagePath):
+	def detect(self, imagePath: str) -> ObjectDetectionResults:
 		sentence, boxes = YOLOv3Detection(imagePath).getResults()
 		result = ObjectDetectionResults(self.imageHash, self.imgInfo, sentence, boxes)
 		return result
 
-	def validateObject(self, nav):
+	def validateObject(self, nav) -> bool:
 		if nav.role != ROLE_GRAPHIC:
-			ui.message("Currently focused element is not an image. Please try again with an image element.")
+			ui.message("Currently focused element is not an image. Please try again with an image element "
+					"or change your add-on settings.")
 			log.debug(f"(objectDetection) Navigation object role:{nav.role}")
 			return False
 		return True
 
-	def validateBounds(self, left, top, width, height):
-		if width < _sizeThreshold or height < _sizeThreshold:
+	def validateBounds(self, location: RectLTWH) -> bool:
+		if location.width < _sizeThreshold or location.height < _sizeThreshold:
 			ui.message("Image too small to produce good results. Please try again with a larger image.")
-			log.debug(f"(objectDetection) Capture bounds: width={width}, height={height}.")
+			log.debug(f"(objectDetection) Capture bounds: width={location.width}, height={location.height}.")
 			return False
 		return True
 

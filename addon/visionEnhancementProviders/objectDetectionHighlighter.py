@@ -20,8 +20,9 @@ import core
 import ui
 import driverHandler
 
+
 class HighlightStyle(
-		namedtuple("HighlightStyle", ("color", "width", "style", "margin"))
+	namedtuple("HighlightStyle", ("color", "width", "style", "margin"))
 ):
 	"""Represents the style of a highlight for a particular context.
 	@ivar color: The color to use for the style
@@ -40,10 +41,13 @@ class HighlightStyle(
 		This value may also be negative.
 	@type margin: int
 	"""
+
+
 COLORS = [RGB(0xE7, 0x4C, 0x3C), RGB(0x9B, 0x59, 0xB6), RGB(0x34, 0x98, 0xDB), RGB(0x2C, 0x3E, 0x50),
-		RGB(0xE6, 0x7E, 0x22), RGB(0xC0, 0x39, 0x2B), RGB(0x16, 0xA0, 0x85), RGB(0x27, 0xAE, 0x60),
-		RGB(0x2E, 0xCC, 0x71), RGB(0xF1, 0xC4, 0x0F), RGB(0xF3, 0x9C, 0x12) ,RGB(0xEC, 0xF0, 0xF1),
-		RGB(0xD3, 0x54, 0x00), RGB(0x29, 0x80, 0xB9), RGB(0x7F, 0x8C, 0x8D), RGB(0x8E, 0x44, 0xAD),]
+		  RGB(0xE6, 0x7E, 0x22), RGB(0xC0, 0x39, 0x2B), RGB(0x16, 0xA0, 0x85), RGB(0x27, 0xAE, 0x60),
+		  RGB(0x2E, 0xCC, 0x71), RGB(0xF1, 0xC4, 0x0F), RGB(0xF3, 0x9C, 0x12), RGB(0xEC, 0xF0, 0xF1),
+		  RGB(0xD3, 0x54, 0x00), RGB(0x29, 0x80, 0xB9), RGB(0x7F, 0x8C, 0x8D), RGB(0x8E, 0x44, 0xAD)]
+
 
 class ObjectDetectionHighlightWindow(CustomWindow):
 	transparency = 0xff
@@ -85,10 +89,10 @@ class ObjectDetectionHighlightWindow(CustomWindow):
 		self.location = RectLTWH(left, top, width, height)
 		winUser.user32.ShowWindow(self.handle, winUser.SW_HIDE)
 		if not winUser.user32.SetWindowPos(
-			self.handle,
-			winUser.HWND_TOPMOST,
-			left, top, width, height,
-			winUser.SWP_NOACTIVATE
+				self.handle,
+				winUser.HWND_TOPMOST,
+				left, top, width, height,
+				winUser.SWP_NOACTIVATE
 		):
 			raise WinError()
 		winUser.user32.ShowWindow(self.handle, winUser.SW_SHOWNA)
@@ -153,9 +157,9 @@ class ObjectDetectionHighlightWindow(CustomWindow):
 					except RuntimeError:
 						pass
 					with winGDI.GDIPlusPen(
-						borderStyle.color.toGDIPlusARGB(),
-						borderStyle.width,
-						borderStyle.style
+							borderStyle.color.toGDIPlusARGB(),
+							borderStyle.width,
+							borderStyle.style
 					) as pen:
 						winGDI.gdiPlusDrawRectangle(graphicsContext, pen, *rect.toLTWH())
 
@@ -164,7 +168,6 @@ class ObjectDetectionHighlightWindow(CustomWindow):
 
 
 class ObjectDetectionHighlighterSettings(providerBase.VisionEnhancementProviderSettings):
-
 	filterNonGraphicElements = True
 
 	@classmethod
@@ -266,7 +269,7 @@ class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
 	def handleMouseMove(self, obj, x, y):
 		for i in range(len(self.objectRects)):
 			label, rect = self.objectRects[i]
-			if rect.left < x < rect.right and rect.top < y <rect.bottom:
+			if rect.left < x < rect.right and rect.top < y < rect.bottom:
 				if self.announce[i]:
 					ui.message(label)
 					self.announce[i] = False
@@ -283,12 +286,13 @@ class ObjectDetectionHighlighter(providerBase.VisionEnhancementProvider):
 		if self._window and self._window.handle:
 			self._window.refresh()
 
-	def addObjectRect(self, label:str, rect:RectLTRB):
-		self.objectRects.append((label ,rect))
+	def addObjectRect(self, label: str, rect: RectLTRB):
+		self.objectRects.append((label, rect))
 		self.announce.append(True)
 
 	def clearObjectRects(self):
 		if self.objectRects:
 			self.objectRects.clear()
+
 
 VisionEnhancementProvider = ObjectDetectionHighlighter

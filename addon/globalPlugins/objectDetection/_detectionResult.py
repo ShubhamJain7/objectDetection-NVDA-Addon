@@ -1,8 +1,9 @@
 from contentRecog import RecogImageInfo
 from collections import namedtuple
 
+
 class Detection():
-	def __init__(self, label:str, x:int, y:int, width:int, height:int):
+	def __init__(self, label: str, x: int, y: int, width: int, height: int):
 		self.label = label
 		self.x = x
 		self.y = y
@@ -11,7 +12,7 @@ class Detection():
 
 
 class ObjectDetectionResults():
-	def __init__(self, imageHash:int, imgInfo:RecogImageInfo, sentence:str, boxes:iter):
+	def __init__(self, imageHash: int, imgInfo: RecogImageInfo, sentence: str, boxes: iter):
 		self.imageHash = imageHash
 		self.imgInfo = imgInfo
 		self.sentence = sentence

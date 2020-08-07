@@ -6,6 +6,7 @@ from ctypes import *
 from collections import Counter
 from ._detectionResult import Detection
 
+
 class YOLOv3Detection():
 
 	def __init__(self, imagePath):
@@ -15,8 +16,8 @@ class YOLOv3Detection():
 		self.configFile = self.baseDir + "/models/yolov3.cfg"
 		self.weightsFile = self.baseDir + "/models/yolov3.weights"
 
-		self.dllPaths = ["\\dlls\\opencv_core430.dll", "\\dlls\\opencv_imgproc430.dll", "\\dlls\\opencv_imgcodecs430.dll",
-						"\\dlls\\opencv_dnn430.dll", "\\dlls\\YOLOv3-DLL.dll"]
+		self.dllPaths = ["\\dlls\\opencv_core430.dll", "\\dlls\\opencv_imgproc430.dll",
+						"\\dlls\\opencv_imgcodecs430.dll", "\\dlls\\opencv_dnn430.dll", "\\dlls\\YOLOv3-DLL.dll"]
 		self.dllPaths = [self.baseDir + dllPath for dllPath in self.dllPaths]
 
 		self._checkFiles()
@@ -36,16 +37,16 @@ class YOLOv3Detection():
 						'a teddy bear', 'a hairdryer', 'a toothbrush']
 
 	CLASSES_PLURAL = ['people', 'bicycles', 'cars', 'motorbikes', 'aeroplanes', 'buses', 'trains', 'trucks', 'boats',
-						'traffic lights', 'fire hydrants', 'stop signs', 'parking meters', 'benches', 'birds', 'cats',
-						'dogs', 'horses', 'multiple sheep', 'cows', 'elephants', 'bears', 'zebras', 'giraffes',
-						'backpacks', 'umbrellas', 'handbags', 'ties', 'suitcases', 'frisbees', 'skis', 'snowboards',
-						'sports balls', 'kites', 'baseball bats', 'baseball gloves', 'skateboards', 'surfboards',
-						'tennis rackets', 'bottles', 'wine glasses', 'cups', 'forks', 'knives',	'spoons', 'bowls',
-						'bananas', 'apples', 'sandwiches', 'oranges', 'broccoli', 'carrots', 'hot dogs', 'pizzas',
-						'donuts', 'cakes', 'chairs', 'sofas', 'potted plants', 'beds', 'dining tables', 'toilets',
-						'tv monitors', 'laptops', 'mice', 'remotes', 'keyboards', 'cell phones', 'microwaves', 'ovens',
-						'toasters', 'sinks', 'refrigerators', 'books', 'clocks', 'vases', 'scissors', 'teddy bears',
-						'hairdryers', 'toothbrushes']
+					'traffic lights', 'fire hydrants', 'stop signs', 'parking meters', 'benches', 'birds', 'cats',
+					'dogs', 'horses', 'multiple sheep', 'cows', 'elephants', 'bears', 'zebras', 'giraffes',
+					'backpacks', 'umbrellas', 'handbags', 'ties', 'suitcases', 'frisbees', 'skis', 'snowboards',
+					'sports balls', 'kites', 'baseball bats', 'baseball gloves', 'skateboards', 'surfboards',
+					'tennis rackets', 'bottles', 'wine glasses', 'cups', 'forks', 'knives', 'spoons', 'bowls',
+					'bananas', 'apples', 'sandwiches', 'oranges', 'broccoli', 'carrots', 'hot dogs', 'pizzas',
+					'donuts', 'cakes', 'chairs', 'sofas', 'potted plants', 'beds', 'dining tables', 'toilets',
+					'tv monitors', 'laptops', 'mice', 'remotes', 'keyboards', 'cell phones', 'microwaves', 'ovens',
+					'toasters', 'sinks', 'refrigerators', 'books', 'clocks', 'vases', 'scissors', 'teddy bears',
+					'hairdryers', 'toothbrushes']
 
 	# python definition of 'Detection' struct
 	class Detection(Structure):
@@ -149,7 +150,7 @@ class YOLOv3Detection():
 		sentence = self._createSentence()
 		for detection in detections:
 			words = self.CLASSES_SINGULAR[detection.classId].split(" ")
-			classLabel = " ".join(words[1:]) if len(words)>1 else words[0]
+			classLabel = " ".join(words[1:]) if len(words) > 1 else words[0]
 			boxes.append(Detection(classLabel, detection.x, detection.y, detection.width, detection.height))
 
 		return (sentence, boxes)
