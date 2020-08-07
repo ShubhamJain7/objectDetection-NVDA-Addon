@@ -31,8 +31,7 @@ class PresentResults():
 		self.cacheResult()
 
 		sentence = result.sentence
-		boxes = result.boxes
-		imgInfo = result.imgInfo
+		boxes = result.getAdjustedLTRBBoxes()
 
 		ui.message(sentence)
 
@@ -47,11 +46,7 @@ class PresentResults():
 			odh = vision.handler.getProviderInstance(providerInfo)
 
 		for box in boxes:
-			left = box.x + imgInfo.screenLeft
-			top = box.y + imgInfo.screenTop
-			right = left + box.width
-			bottom = top + box.height
-			odh.addObjectRect(box.label, RectLTRB(left, top, right, bottom))
+			odh.addObjectRect(box.label, RectLTRB(box.left, box.top, box.right, box.bottom))
 
 	def cacheResult(self):
 		global  _cachedResults
@@ -86,7 +81,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	)
 	def script_virtualResultWindow(self, gesture):
 		global _cachedResults
-		lastResult = _cachedResults[-1]
+		if len(_cachedResults)==0:
+			return
+		lastResult = _cachedResults[0]
 		sentenceResult = contentRecog.SimpleTextResult(lastResult.sentence)
 		resObj = VirtualResultWindow(result=sentenceResult)
 		# This method queues an event to the main thread.
