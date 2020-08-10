@@ -2,12 +2,14 @@
 # Copyright 2020 Shubham Dilip Jain, released under the AGPL-3.0 License
 
 import globalPluginHandler
+import scriptHandler
 from scriptHandler import script
 from globalCommands import SCRCAT_VISION
 import vision
 from collections import deque
 from visionEnhancementProviders.screenCurtain import ScreenCurtainSettings
 import ui
+import time
 from contentRecog import SimpleTextResult
 
 from ._doObjectDetection import DoDetectionYOLOv3
@@ -24,11 +26,19 @@ def isScreenCurtainEnabled():
 		ui.message("Screen curtain is enabled. Disable screen curtain to use the object detection add-on.")
 	return isEnabled
 
+def getObjectDetectionVisionProvider():
+	providerId = ObjectDetection.getSettings().getId()
+	providerInfo = vision.handler.getProviderInfo(providerId)
+	od = vision.handler.getProviderInstance(providerInfo)
+	if not od:
+		vision.handler.initializeProvider(providerInfo)
+		od = vision.handler.getProviderInstance(providerInfo)
+	return od
+
 
 _cachedResults = deque(maxlen=10)
 
-
-class PresentResults():
+class SpeakResults():
 	def __init__(self, result: ObjectDetectionResults):
 		self.result = result
 		self.cacheResult()
@@ -41,15 +51,28 @@ class PresentResults():
 		if not boxes:
 			return
 
-		providerId = ObjectDetection.getSettings().getId()
-		providerInfo = vision.handler.getProviderInfo(providerId)
-		oh = vision.handler.getProviderInstance(providerInfo)
-		if not oh:
-			vision.handler.initializeProvider(providerInfo)
-			oh = vision.handler.getProviderInstance(providerInfo)
-
+		od = getObjectDetectionVisionProvider()
 		for box in boxes:
-			oh.addObjectRect(box.label, RectLTRB(box.left, box.top, box.right, box.bottom))
+			od.addObjectRect(box.label, RectLTRB(box.left, box.top, box.right, box.bottom))
+
+	def cacheResult(self):
+		global _cachedResults
+		alreadyCached = False
+		for cachedResult in _cachedResults:
+			if self.result.imageHash == cachedResult.imageHash:
+				alreadyCached = True
+				break
+		if not alreadyCached:
+			_cachedResults.appendleft(self.result)
+
+class BrowseableResults():
+	def __init__(self, result: ObjectDetectionResults):
+		self.result = result
+		self.cacheResult()
+
+		sentenceResult = SimpleTextResult(result.sentence)
+		resObj = VirtualResultWindow(result=sentenceResult)
+		resObj.setFocus()
 
 	def cacheResult(self):
 		global _cachedResults
@@ -65,28 +88,22 @@ class PresentResults():
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	@script(
-		# Translators: Input trigger to perform object detection on focused image
 		description=_("Perform object detection on focused image"),
 		category=SCRCAT_VISION
 	)
-	def script_detectObjectsTinyYOLOv3(self, gesture):
+	def script_detectObjectsYOLOv3(self, gesture):
 		global _cachedResults
-		if not isScreenCurtainEnabled():
-			recognizer = DoDetectionYOLOv3(PresentResults)
-			filterNonGraphic = ObjectDetection.getSettings().filterNonGraphicElements
-			recognizeNavigatorObject(recognizer, filterNonGraphic=filterNonGraphic,
-									cachedResults=_cachedResults)
 
-	@script(
-		description=_("Present object detection result in a broweable, virtual window"),
-		category=SCRCAT_VISION,
-	)
-	def script_virtualResultWindow(self, gesture):
-		global _cachedResults
-		if len(_cachedResults) == 0:
-			return
-		lastResult = _cachedResults[0]
-		sentenceResult = SimpleTextResult(lastResult.sentence)
-		resObj = VirtualResultWindow(result=sentenceResult)
-		# This method queues an event to the main thread.
-		resObj.setFocus()
+		scriptCount = scriptHandler.getLastScriptRepeatCount()
+		od = getObjectDetectionVisionProvider()
+		if od.clearObjectRects():
+			time.sleep(0.05) # make sure all boxes are cleared
+
+		if not isScreenCurtainEnabled():
+			if scriptCount == 0:
+				recognizer = DoDetectionYOLOv3(SpeakResults)
+			else:
+				recognizer = DoDetectionYOLOv3(BrowseableResults)
+
+			filterNonGraphic = ObjectDetection.getSettings().filterNonGraphicElements
+			recognizeNavigatorObject(recognizer, filterNonGraphic=filterNonGraphic, cachedResults=_cachedResults)
