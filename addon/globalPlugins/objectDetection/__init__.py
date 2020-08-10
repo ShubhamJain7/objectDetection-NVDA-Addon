@@ -11,6 +11,7 @@ from visionEnhancementProviders.screenCurtain import ScreenCurtainSettings
 import ui
 import time
 from contentRecog import SimpleTextResult
+from logHandler import log
 
 from ._doObjectDetection import DoDetectionYOLOv3
 from ._resultUI import recognizeNavigatorObject, VirtualResultWindow
@@ -95,6 +96,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		global _cachedResults
 
 		scriptCount = scriptHandler.getLastScriptRepeatCount()
+		log.debug(f'************************** scriptCount: {scriptCount} *******************************')
+
 		od = getObjectDetectionVisionProvider()
 		if od.clearObjectRects():
 			time.sleep(0.05) # make sure all boxes are cleared
