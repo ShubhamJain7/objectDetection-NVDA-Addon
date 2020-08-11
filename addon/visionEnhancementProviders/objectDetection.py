@@ -290,11 +290,11 @@ class ObjectDetection(providerBase.VisionEnhancementProvider):
 		self.objectRects.append((label, rect))
 		self.announce.append(True)
 
-	def clearObjectRects(self) -> bool:
+	def clearObjectRects(self):
 		if self.objectRects:
 			self.objectRects.clear()
-			return True
-		else:
-			return False
+
+	def currentlyDisplayingRects(self) -> bool:
+		return bool(self.objectRects)
 
 VisionEnhancementProvider = ObjectDetection

@@ -31,9 +31,6 @@ def getObjectDetectionVisionProvider():
 	providerId = ObjectDetection.getSettings().getId()
 	providerInfo = vision.handler.getProviderInfo(providerId)
 	od = vision.handler.getProviderInstance(providerInfo)
-	if not od:
-		vision.handler.initializeProvider(providerInfo)
-		od = vision.handler.getProviderInstance(providerInfo)
 	return od
 
 
@@ -84,6 +81,17 @@ class BrowseableResults():
 				break
 		if not alreadyCached:
 			_cachedResults.appendleft(self.result)
+			
+
+_lastCalled = 0
+def getScriptCount():
+	global _lastCalled
+	if 0<(time.time() - _lastCalled)<=3:
+		_lastCalled = time.time()
+		return 1
+	else:
+		_lastCalled = time.time()
+		return 0
 
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
@@ -94,19 +102,23 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	)
 	def script_detectObjectsYOLOv3(self, gesture):
 		global _cachedResults
-
-		scriptCount = scriptHandler.getLastScriptRepeatCount()
-		log.debug(f'************************** scriptCount: {scriptCount} *******************************')
-
+		scriptCount = getScriptCount()
 		od = getObjectDetectionVisionProvider()
-		if od.clearObjectRects():
-			time.sleep(0.05) # make sure all boxes are cleared
-
+		filterNonGraphic = ObjectDetection.getSettings().filterNonGraphicElements
 		if not isScreenCurtainEnabled():
 			if scriptCount == 0:
-				recognizer = DoDetectionYOLOv3(SpeakResults)
+				if od.currentlyDisplayingRects():
+					od.clearObjectRects()
+					SpeakResults(_cachedResults[0])
+				else:
+					recognizer = DoDetectionYOLOv3(SpeakResults)
+					recognizeNavigatorObject(recognizer, filterNonGraphic=filterNonGraphic,
+											cachedResults=_cachedResults)
 			else:
-				recognizer = DoDetectionYOLOv3(BrowseableResults)
-
-			filterNonGraphic = ObjectDetection.getSettings().filterNonGraphicElements
-			recognizeNavigatorObject(recognizer, filterNonGraphic=filterNonGraphic, cachedResults=_cachedResults)
+				if od.currentlyDisplayingRects():
+					od.clearObjectRects()
+					BrowseableResults(_cachedResults[0])
+				else:
+					recognizer = DoDetectionYOLOv3(BrowseableResults)
+					recognizeNavigatorObject(recognizer, filterNonGraphic=filterNonGraphic,
+											cachedResults=_cachedResults)
