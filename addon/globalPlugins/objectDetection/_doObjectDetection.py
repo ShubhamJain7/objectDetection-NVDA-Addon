@@ -1,17 +1,17 @@
-# Object Detection model specific detection modules
+# Object Detection: YOLOv3 object detection class
 # Copyright 2020 Shubham Dilip Jain, released under the AGPL-3.0 License
 
 import os
 import threading
 import tempfile
-from typing import Any
-
 import wx
 import ui
+from typing import Any
 import contentRecog
 from logHandler import log
 from locationHelper import RectLTWH
 from controlTypes import ROLE_GRAPHIC
+
 from ._detectionResult import ObjectDetectionResults
 from ._YOLOv3 import YOLOv3Detection
 

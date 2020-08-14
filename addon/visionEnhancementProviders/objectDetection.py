@@ -1,3 +1,6 @@
+# Object Detection: Bounding boxes vision enhancement provider and settings options
+# Copyright 2020 Shubham Dilip Jain, released under the AGPL-3.0 License
+
 from autoSettingsUtils.autoSettings import SupportedSettingType
 import vision
 from vision.visionHandlerExtensionPoints import EventExtensionPoints

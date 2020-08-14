@@ -1,22 +1,21 @@
-# Object Detection global plugin main module
+# Object Detection: global plugin main module, result presentation and result caching
 # Copyright 2020 Shubham Dilip Jain, released under the AGPL-3.0 License
 
 import globalPluginHandler
-import scriptHandler
 from scriptHandler import script
 from globalCommands import SCRCAT_VISION
 import vision
-from collections import deque
-from visionEnhancementProviders.screenCurtain import ScreenCurtainSettings
 import ui
 import time
 from contentRecog import SimpleTextResult
-from logHandler import log
+from contentRecog.recogUi import RecogResultNVDAObject
+from collections import deque
 
 from ._doObjectDetection import DoDetectionYOLOv3
-from ._resultUI import recognizeNavigatorObject, VirtualResultWindow
 from ._detectionResult import ObjectDetectionResults
+from ._resultUI import recognizeNavigatorObject
 
+from visionEnhancementProviders.screenCurtain import ScreenCurtainSettings
 from visionEnhancementProviders.objectDetection import ObjectDetection
 from locationHelper import RectLTRB
 
@@ -27,7 +26,7 @@ def isScreenCurtainEnabled():
 		ui.message("Screen curtain is enabled. Disable screen curtain to use the object detection add-on.")
 	return isEnabled
 
-def getObjectDetectionVisionProvider():
+def getObjectDetectionVisionProvider() -> ObjectDetection:
 	providerId = ObjectDetection.getSettings().getId()
 	providerInfo = vision.handler.getProviderInfo(providerId)
 	od = vision.handler.getProviderInstance(providerInfo)
@@ -69,7 +68,7 @@ class BrowseableResults():
 		self.cacheResult()
 
 		sentenceResult = SimpleTextResult(result.sentence)
-		resObj = VirtualResultWindow(result=sentenceResult)
+		resObj = RecogResultNVDAObject(result=sentenceResult)
 		resObj.setFocus()
 
 	def cacheResult(self):
@@ -81,7 +80,7 @@ class BrowseableResults():
 				break
 		if not alreadyCached:
 			_cachedResults.appendleft(self.result)
-			
+
 
 _lastCalled = 0
 def getScriptCount():
@@ -103,7 +102,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def script_detectObjectsYOLOv3(self, gesture):
 		global _cachedResults
 		scriptCount = getScriptCount()
-		od = getObjectDetectionVisionProvider()
+		od:ObjectDetection = getObjectDetectionVisionProvider()
 		filterNonGraphic = ObjectDetection.getSettings().filterNonGraphicElements
 		if not isScreenCurtainEnabled():
 			if scriptCount == 0:

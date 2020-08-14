@@ -1,3 +1,6 @@
+# Object Detection: detection and result classes
+# Copyright 2020 Shubham Dilip Jain, released under the AGPL-3.0 License
+
 from contentRecog import RecogImageInfo
 from collections import namedtuple
 
