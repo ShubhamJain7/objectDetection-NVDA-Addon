@@ -3,6 +3,7 @@
 
 import api
 import ui
+import time
 import screenBitmap
 from typing import Optional
 from logHandler import log
@@ -46,8 +47,13 @@ def recognizeNavigatorObject(recognizer, filterNonGraphic=True, cachedResults=No
 	except ValueError:
 		ui.message(notVisibleMsg)
 		return
+
 	if _activeRecog:
-		_activeRecog.cancel()
+		if not (0 < (time.time() - _activeRecog.timeCreated) <= 3):
+			ui.message("Already running an image captioning process. Please try again later.")
+			return
+		else:
+			_activeRecog.cancel()
 
 	sb = screenBitmap.ScreenBitmap(imgInfo.recogWidth, imgInfo.recogHeight)
 	pixels = sb.captureImage(left, top, width, height)

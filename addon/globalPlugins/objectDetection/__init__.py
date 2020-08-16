@@ -110,7 +110,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 					od.clearObjectRects()
 					SpeakResults(_cachedResults[0])
 				else:
-					recognizer = DoDetectionYOLOv3(SpeakResults)
+					recognizer = DoDetectionYOLOv3(resultHandlerClass=SpeakResults, timeCreated=time.time())
 					recognizeNavigatorObject(recognizer, filterNonGraphic=filterNonGraphic,
 											cachedResults=_cachedResults)
 			else:
@@ -118,6 +118,6 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 					od.clearObjectRects()
 					BrowseableResults(_cachedResults[0])
 				else:
-					recognizer = DoDetectionYOLOv3(BrowseableResults)
+					recognizer = DoDetectionYOLOv3(resultHandlerClass=BrowseableResults, timeCreated=time.time())
 					recognizeNavigatorObject(recognizer, filterNonGraphic=filterNonGraphic,
 											cachedResults=_cachedResults)
