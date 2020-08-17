@@ -154,4 +154,3 @@ class YOLOv3Detection():
 			boxes.append(Detection(classLabel, detection.x, detection.y, detection.width, detection.height))
 
 		return (sentence, boxes)
-s

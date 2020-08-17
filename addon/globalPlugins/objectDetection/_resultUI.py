@@ -50,7 +50,7 @@ def recognizeNavigatorObject(recognizer, filterNonGraphic=True, cachedResults=No
 
 	if _activeRecog:
 		if not (0 < (time.time() - _activeRecog.timeCreated) <= 3):
-			ui.message("Already running an image captioning process. Please try again later.")
+			ui.message("Already running an object detection process. Please try again later.")
 			return
 		else:
 			_activeRecog.cancel()

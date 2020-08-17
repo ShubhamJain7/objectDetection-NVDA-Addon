@@ -3,14 +3,19 @@
 * Author: Shubham Dilip Jain
 * Download: https://github.com/ShubhamJain7/objectDetection-NVDA-Addon/releases
 
-This add-on allows users to perform object detection on image elements present on their screen and get results in the form of a sentence and bounding boxes drawn around the detected objects. Users can move their mouse pointer or finger (in case of touch screens) inside a bounding box to hear the object label. The result is first announced to the user and if the user wishes, it can also be presented in a virtual, browseable window that allows users to access the result character-by-character, word-by-word, as a whole and even copy the result. This add-on works well only with "natural images" of people, animals and some common objects.
+This add-on allows users to perform object detection on image elements present on their screen and get results in the form of a sentence and bounding boxes drawn around the detected objects. Users can move their mouse pointer or finger (in case of touch screens) inside a bounding box to hear the object label. The result sentence can be either announced or it can be presented in a virtual, browseable window that allows users to access the result character-by-character, word-by-word, as a whole and even copy the result. This add-on works well only with "natural images" of people, animals and some common objects.
+
+_Note: Mouse tracking must be enabled for the bounding box label to be announced._
 
 ### Usage
 ----
-After installing, the user must first set their preferred gestures at __Preferences->Input gestures->Vision__. There are only two gestures, one for performing detection on a currently focused image and another for accessing the result in a virtual, browseable window. 
-Keying the first gesture triggers the object detection process. The user first hears "Recognizing" and then a sentence form of the result is announced whenever it is available (this may take a few seconds). Along with this announcement, bounding boxes are also drawn around the detected objects. Users can move their mouse pointer or finger (in case of touch screens) to announce the object label. The object label is only announced once when the bounding box is entered. The box must be re-entered for subsequent announcements. These bounding boxes only disappear when the focus shifts to another element.
-Keying the second gesture opens up a virtual browseable window containing the same sentence form result. Users can use navigation keys in this window to browse the result letter-by-letter, word-by-word, as a whole or even copy it. Users must escape this window before starting another object detection process. This can be done by pressing the `ESC` key or shifting focus to another element.
-Users can also prevent the object detection process from starting on non-graphic elements by checking the `filter non-graphic elements` option under __Preferences->Settings->Vision->Object detection add-on__. This prevents users from accidentally starting the object detection process on elements that do not contain images and will produce bad results. Unchecking it allows users to perform detections on elements that may contain images but fail to report the same.
+- After installing, the user must first set their preferred gesture at __Preferences->Input gestures->Vision__. 
+
+- Keying the set gesture once triggers the object detection process and the sentence form of the obtained result is announced to the user (this may take a few seconds). Along with this announcement, bounding boxes are also drawn around the detected objects. Users can move their mouse pointer or finger (in case of touch screens) to announce the object label. The object label is only announced once when the bounding box is entered. The box must be re-entered for subsequent announcements. These bounding boxes only disappear when the focus shifts to another element. (Mouse tracking must be enabled for this work).
+
+- Keying the same gesture more than once also triggers the object detection process but the sentence form of the result is presented in a virtual window and no bounding boxes are drawn. Users can use navigation keys in this window to browse the result letter-by-letter, word-by-word, as a whole or even copy it. Users must escape this window before starting another object detection process. This can be done by pressing the `ESC` key or shifting focus to another element.
+
+- Users can also prevent the object detection process from starting on non-graphic elements by checking the `filter non-graphic elements` option under __Preferences->Settings->Vision->Object detection add-on__. This prevents users from accidentally starting the object detection process on elements that do not contain images and will produce bad results. Unchecking it allows users to perform detections on elements that may contain images but fail to report the same.
 
 
 ### Building it yourself
