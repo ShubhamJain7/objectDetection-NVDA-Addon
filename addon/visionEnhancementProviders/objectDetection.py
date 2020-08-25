@@ -216,6 +216,7 @@ class ObjectDetection(providerBase.VisionEnhancementProvider):
 	) -> None:
 		extensionPoints.post_mouseMove.register(self.handleMouseMove)
 		extensionPoints.post_focusChange.register(self.handleFocusChange)
+		extensionPoints.post_browseModeMove.register(self.handleBrowseModeMove)
 
 	def __init__(self):
 		super().__init__()
@@ -281,6 +282,9 @@ class ObjectDetection(providerBase.VisionEnhancementProvider):
 					self.announce[i] = True
 
 	def handleFocusChange(self, obj):
+		self.clearObjectRects()
+
+	def handleBrowseModeMove(self, obj):
 		self.clearObjectRects()
 
 	def refresh(self):

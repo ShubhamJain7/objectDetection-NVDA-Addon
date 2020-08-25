@@ -23,6 +23,7 @@ class DoDetectionYOLOv3(contentRecog.ContentRecognizer):
 	def __init__(self, resultHandlerClass, timeCreated):
 		self.resultHandlerClass = resultHandlerClass
 		self.timeCreated = timeCreated
+		self.checkChildren = False
 
 	def recognize(self, imageHash, pixels, imgInfo, onResult):
 		self.imageHash = imageHash
@@ -54,11 +55,15 @@ class DoDetectionYOLOv3(contentRecog.ContentRecognizer):
 		result = ObjectDetectionResults(self.imageHash, self.imgInfo, sentence, boxes)
 		return result
 
-	def validateObject(self, nav) -> bool:
-		if nav.role != ROLE_GRAPHIC:
+	def validateObject(self, obj) -> bool:
+		if obj.role != ROLE_GRAPHIC:
+			if self.checkChildren:
+				for child in obj.children:
+					if child.role == ROLE_GRAPHIC:
+						return True
 			ui.message("Currently focused element is not an image. Please try again with an image element "
 					"or change your add-on settings.")
-			log.debug(f"(objectDetection) Navigation object role:{nav.role}")
+			log.debug(f"(objectDetection) Navigation object role:{obj.role}")
 			return False
 		return True
 

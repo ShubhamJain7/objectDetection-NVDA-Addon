@@ -27,20 +27,28 @@ def recognizeNavigatorObject(recognizer, filterNonGraphic=True, cachedResults=No
 		# but the user is already reading a content recognition result.
 		ui.message(_("Already in a content recognition result"))
 		return
-	nav = api.getNavigatorObject()
 
-	if filterNonGraphic and not recognizer.validateObject(nav):
+	obj = api.getFocusObject()
+	if obj.treeInterceptor:
+		isFocusModeEnabled = obj.treeInterceptor.passThrough
+		if isFocusModeEnabled:
+			recognizer.checkChildren = True
+		else:
+			obj = api.getNavigatorObject()
+	else:
+		obj = api.getNavigatorObject()
+
+	if filterNonGraphic and not recognizer.validateObject(obj):
 		return
-	# Translators: Reported when content recognition (e.g. OCR) is attempted,
-	# but the content is not visible.
+	# Translators: Reported when object is attempted, but the content is not visible.
 	notVisibleMsg = _("Content is not visible")
 	try:
-		left, top, width, height = nav.location
+		left, top, width, height = obj.location
 	except TypeError:
-		log.debugWarning("Object returned location %r" % nav.location)
+		log.debugWarning("Object returned location %r" % obj.location)
 		ui.message(notVisibleMsg)
 		return
-	if not recognizer.validateBounds(nav.location):
+	if not recognizer.validateBounds(obj.location):
 		return
 	try:
 		imgInfo = RecogImageInfo.createFromRecognizer(left, top, width, height, recognizer)
