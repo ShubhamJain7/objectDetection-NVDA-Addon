@@ -26,7 +26,11 @@ def isScreenCurtainEnabled() -> bool:
 	"""
 	isEnabled = any([x.providerId == ScreenCurtainSettings.getId() for x in vision.handler.getActiveProviderInfos()])
 	if isEnabled:
-		ui.message("Screen curtain is enabled. Disable screen curtain to use the object detection add-on.")
+		#Translators: reported when the user tries to start a recognition process while the screen curtain
+		# is enabled
+		ui.message(
+			_("Screen curtain is enabled. Disable screen curtain to use the object detection add-on.")
+		)
 	return isEnabled
 
 
@@ -48,17 +52,23 @@ class SpeakResults():
 	"""ResultHandlerClass that speaks the obtained result and draws boxes around the detected objects."""
 
 	def __init__(self, result: ObjectDetectionResults):
+		"""Constructor that calls methods to cache and present results when class instance is created.
+		@param result: object detection result
+		"""
 		self.result = result
 		self.cacheResult()
+		self.presentResult()
 
-		sentence = result.sentence
-		boxes = result.getAdjustedLTRBBoxes()
-
+	def presentResult(self):
+		"""Speaks the result and draws bounding boxes if any objects were detected"""
+		sentence = self.result.sentence
+		boxes = self.result.getAdjustedLTRBBoxes()
+		# speaks result
 		ui.message(sentence)
-
+		# if no objects were detected, stop here
 		if not boxes:
 			return
-
+		# if objects were detected draw bounding boxes for them
 		od = getObjectDetectionVisionProvider()
 		for box in boxes:
 			od.addObjectRect(box.label, RectLTRB(box.left, box.top, box.right, box.bottom))
@@ -82,10 +92,18 @@ class BrowseableResults():
 	"""
 
 	def __init__(self, result: ObjectDetectionResults):
+		"""Calls methods to cache result and present it in a virtual result window when class instance
+		is created.
+		@param result: object detection result
+		"""
 		self.result = result
 		self.cacheResult()
+		self.presentResult()
 
-		sentenceResult = SimpleTextResult(result.sentence)
+	def presentResult(self):
+		"""converts the result sentence from string to L{SimpleTextResult}, create a virtual result window
+		using it and set focus onto the window."""
+		sentenceResult = SimpleTextResult(self.result.sentence)
 		resObj = RecogResultNVDAObject(result=sentenceResult)
 		resObj.setFocus()
 
@@ -105,7 +123,6 @@ class BrowseableResults():
 
 # Stores timestamp of when the script was last called. Initially set to zero.
 _lastCalled = 0
-
 
 def recentlyCalled() -> bool:
 	"""Checks if the global plugin script was called in the last three seconds or not.
@@ -150,8 +167,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 					recognizeNavigatorObject(recognizer, filterNonGraphic=filterNonGraphic,
 											cachedResults=_cachedResults)
 
-			# Script was called in the last 3 seconds so the user probably pressed the gesture multiple times and
-			# wants the result to be presented in a virtual result window.
+			# Script was called in the last 3 seconds so the user probably pressed the gesture multiple
+			# times and wants the result to be presented in a virtual result window.
 			else:
 				if od.currentlyDisplayingRects():
 					od.clearObjectRects()

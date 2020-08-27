@@ -8,7 +8,7 @@ from ._detectionResult import Detection
 
 
 class YOLOv3Detection():
-	"""Class that interfaces with the YOLOv3 DLL that performs object detection. Responsible to converting
+	"""Class that interfaces with the YOLOv3 DLL that performs object detection. Responsible for converting
 	results to appropriate formats and ensuring DLL dependencies are satisfied."""
 	def __init__(self, imagePath):
 		""" Defines paths to all the required files (image, DLLs and model files)
@@ -19,12 +19,10 @@ class YOLOv3Detection():
 		self.imagePath = imagePath
 		self.configFile = self.baseDir + "/models/yolov3.cfg"
 		self.weightsFile = self.baseDir + "/models/yolov3.weights"
-
 		# Must be in dependency order (ie. A<-B<-C where C depends on B and B depends on A).
 		self.dllPaths = ["\\dlls\\opencv_core430.dll", "\\dlls\\opencv_imgproc430.dll",
 						"\\dlls\\opencv_imgcodecs430.dll", "\\dlls\\opencv_dnn430.dll", "\\dlls\\YOLOv3-DLL.dll"]
 		self.dllPaths = [self.baseDir + dllPath for dllPath in self.dllPaths]
-
 		self._checkFiles()
 
 	# define singular and plural forms of class labels
@@ -63,8 +61,8 @@ class YOLOv3Detection():
 					("height", c_int), ]
 
 	def _checkFiles(self):
-		"""Checks if all the required files are present. Raises a L{FileNotFoundError} if any
-		file is missing"""
+		"""Checks if all the required files are present. Raises a L{FileNotFoundError} if any file is
+		missing"""
 		notFound = ""
 		if not os.path.exists(self.imagePath):
 			notFound = notFound + f'\nobjectDetection(YOLOv3): image not found at {self.imagePath}'
@@ -83,7 +81,7 @@ class YOLOv3Detection():
 			raise FileNotFoundError(notFound)
 
 	def _loadDLLs(self):
-		"""Loads all the DLL files. """
+		"""Loads all the DLL files."""
 		# loads all the DLLs required by the YOLOv3 DLL
 		for dllPath in self.dllPaths[:-1]:
 			# all the d
@@ -119,7 +117,7 @@ class YOLOv3Detection():
 			return []
 
 	def _createSentence(self) -> str:
-		"""Creates a English sentence from the lables of all detected objects
+		"""Creates a English sentence from the labels of all detected objects
 		@return: sentence form of object detection result
 		"""
 		self._checkFiles()

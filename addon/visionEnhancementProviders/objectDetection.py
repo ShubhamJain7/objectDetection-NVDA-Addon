@@ -197,7 +197,8 @@ class ObjectDetectionSettings(providerBase.VisionEnhancementProviderSettings):
 
 
 class ObjectDetection(providerBase.VisionEnhancementProvider):
-	"""Class that defines the visionEnchancementProvider"""
+	"""Class that defines the visionEnhancementProvider responsible for drawing bounding boxes around the
+	detected objects."""
 	_refreshInterval = 100
 	customWindowClass = ObjectDetectionHighlightWindow
 	_settings = ObjectDetectionSettings()

@@ -65,7 +65,8 @@ class DoDetectionYOLOv3(contentRecog.ContentRecognizer):
 			self._onResult(result)
 
 	def cancel(self):
-		"""Disables result presentation but does not stop the detection process."""
+		"""Cancels object detection process
+		@note: process runs but nothing is done on completion."""
 		self._onResult = None
 
 	def detect(self, imagePath: str) -> ObjectDetectionResults:
@@ -115,8 +116,8 @@ class DoDetectionYOLOv3(contentRecog.ContentRecognizer):
 		return True
 
 	def getResultHandler(self, result: Any):
-		"""Returns an instance of the L{resultHandlerClass} instantiated with the object detection result
-		@param result:
+		"""Returns an instance of the L{resultHandlerClass} instantiated with the object detection result.
+		@param result: The object detection result.
 		@return: instance of I{self.resultHandlerClass}
 		"""
 		return self.resultHandlerClass(result)

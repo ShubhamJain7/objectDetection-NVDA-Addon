@@ -70,7 +70,9 @@ def recognizeNavigatorObject(recognizer: ContentRecognizer, filterNonGraphic=Tru
 		# user probably pressed the gesture multiple times so cancel the old process and let the new one
 		# continue.
 		if not ((time.time() - _activeRecog.timeCreated) <= 3):
-			ui.message("Already running an object detection process. Please try again later.")
+			#Translators: Reported when the user tries to start a new object detection process before the
+			# the previous one has completed
+			ui.message(_("Already running an object detection process. Please try again later."))
 			return
 		else:
 			_activeRecog.cancel()
@@ -100,7 +102,6 @@ def recognizeNavigatorObject(recognizer: ContentRecognizer, filterNonGraphic=Tru
 
 	# Translators: Reporting when content recognition begins.
 	ui.message(_("Recognizing"))
-
 	# Store a copy of the recognizer before object detection really starts. This can also be used to check
 	# recognition process is active
 	_activeRecog = recognizer
@@ -112,13 +113,13 @@ def _recogOnResult(result):
 	@param result: object detection result
 	"""
 	global _activeRecog
-	# Create a local copy of the active recognizer for later use and set orignial to L{None} so new recognition
-	# processes may be started.
+	# Create a local copy of the active recognizer for later use and set original to L{None} so new
+	# recognition processes may be started.
 	recognizer: ContentRecognizer = _activeRecog
 	_activeRecog = None
 	# This might get called from a background thread, so any UI calls must be queued to the main thread.
 	if isinstance(result, Exception):
-		# Translators: Reported when recognition (e.g. OCR) fails.
+		# Translators: Reported when recognition fails.
 		log.error("Recognition failed: %s" % result)
 		queueHandler.queueFunction(queueHandler.eventQueue, ui.message, _("Recognition failed"))
 		return
