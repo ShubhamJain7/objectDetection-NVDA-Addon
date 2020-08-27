@@ -45,7 +45,7 @@ class HighlightStyle(
 	@type margin: int
 	"""
 
-
+# List of colors used for the bounding boxes
 COLORS = [RGB(0xE7, 0x4C, 0x3C), RGB(0x9B, 0x59, 0xB6), RGB(0x34, 0x98, 0xDB), RGB(0x2C, 0x3E, 0x50),
 		RGB(0xE6, 0x7E, 0x22), RGB(0xC0, 0x39, 0x2B), RGB(0x16, 0xA0, 0x85), RGB(0x27, 0xAE, 0x60),
 		RGB(0x2E, 0xCC, 0x71), RGB(0xF1, 0xC4, 0x0F), RGB(0xF3, 0x9C, 0x12), RGB(0xEC, 0xF0, 0xF1),
@@ -53,6 +53,7 @@ COLORS = [RGB(0xE7, 0x4C, 0x3C), RGB(0x9B, 0x59, 0xB6), RGB(0x34, 0x98, 0xDB), R
 
 
 class ObjectDetectionHighlightWindow(CustomWindow):
+	"""Class that defines a transparent window upon which the bounding boxes are drawn."""
 	transparency = 0xff
 	className = u"ObjectDetectionHighLighter"
 	windowName = u"Object Detection Highlighter Window"
@@ -138,6 +139,7 @@ class ObjectDetectionHighlightWindow(CustomWindow):
 			core.callLater(100, self.updateLocationForDisplays)
 
 	def _paint(self):
+		"""Method that paints the bounding boxes."""
 		highlighter = self.highlighterRef()
 		if not highlighter:
 			# The highlighter instance died unexpectedly, kill the window as well
@@ -171,6 +173,8 @@ class ObjectDetectionHighlightWindow(CustomWindow):
 
 
 class ObjectDetectionSettings(providerBase.VisionEnhancementProviderSettings):
+	"""Class that defines the settings for the visionEnhancementProvider"""
+	# only setting we use if is non-graphic elements must be filtered or not.
 	filterNonGraphicElements = True
 
 	@classmethod
@@ -193,6 +197,7 @@ class ObjectDetectionSettings(providerBase.VisionEnhancementProviderSettings):
 
 
 class ObjectDetection(providerBase.VisionEnhancementProvider):
+	"""Class that defines the visionEnchancementProvider"""
 	_refreshInterval = 100
 	customWindowClass = ObjectDetectionHighlightWindow
 	_settings = ObjectDetectionSettings()
@@ -221,7 +226,9 @@ class ObjectDetection(providerBase.VisionEnhancementProvider):
 	def __init__(self):
 		super().__init__()
 		log.debug("Starting ObjectDetection")
+		# store the label and location for each bounding box
 		self.objectRects = []
+		# store True is the corresponding I{objectRect} must be announced, else False
 		self.announce = []
 		winGDI.gdiPlusInitialize()
 		self._highlighterThread = threading.Thread(
@@ -271,37 +278,57 @@ class ObjectDetection(providerBase.VisionEnhancementProvider):
 			log.exception("Exception in ObjectDetection thread")
 
 	def handleMouseMove(self, obj, x, y):
+		"""Called whenever a mouse move event occurs. If the pointer is inside the bounding box and
+		announce it if it's corresponding value in L{self.announce} is True."""
 		for i in range(len(self.objectRects)):
 			label, rect = self.objectRects[i]
+			# If the pointer is within the bounding box
 			if rect.left < x < rect.right and rect.top < y < rect.bottom:
+				# If announce is true, we must announce the object label and then set the announce value to
+				# False so the label is not announced repeatedly.
 				if self.announce[i]:
 					ui.message(label)
 					self.announce[i] = False
+			# If the pointer is outside the bounding box and the announce value is False, we should set it
+			# to True so the label is announced when the pointer is moved inside the bounding box
 			else:
 				if not self.announce[i]:
 					self.announce[i] = True
 
 	def handleFocusChange(self, obj):
+		"""Called whenever the focus changes in Focus Mode."""
+		# clear the L{ObjectRects} list so no boxes are painted after the next refresh cycle
 		self.clearObjectRects()
 
 	def handleBrowseModeMove(self, obj):
+		"""Called whenever the focus changes in Browse mode"""
+		# clear the L{ObjectRects} list so no boxes are painted after the next refresh cycle
 		self.clearObjectRects()
 
 	def refresh(self):
-		"""Refreshes the screen positions of the enabled highlights.
-		"""
+		"""Refreshes the screen positions of the drawn bounding boxes"""
 		if self._window and self._window.handle:
 			self._window.refresh()
 
 	def addObjectRect(self, label: str, rect: RectLTRB):
+		"""Appends object label and bounding box location to L{objectRects} and sets corresponding value
+		in L{announce} to True."""
 		self.objectRects.append((label, rect))
 		self.announce.append(True)
 
 	def clearObjectRects(self):
+		"""Clears the contents of the L{ObjectRects} list.
+		@note: The bounding boxes are not cleared until the next refresh cycle and so there may be a delay
+		between a return from this method and the boxes actually disappearing from the screen.
+		"""
 		if self.objectRects:
 			self.objectRects.clear()
 
 	def currentlyDisplayingRects(self) -> bool:
+		"""Checks if any bounding boxes are being displayed
+		@return: True if bounding boxes are being displayed else False.
+		"""
+		# If objectRects is empty no bounding boxes are being displayed.
 		return bool(self.objectRects)
 
 VisionEnhancementProvider = ObjectDetection

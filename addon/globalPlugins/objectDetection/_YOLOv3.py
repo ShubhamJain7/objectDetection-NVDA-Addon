@@ -8,14 +8,19 @@ from ._detectionResult import Detection
 
 
 class YOLOv3Detection():
-
+	"""Class that interfaces with the YOLOv3 DLL that performs object detection. Responsible to converting
+	results to appropriate formats and ensuring DLL dependencies are satisfied."""
 	def __init__(self, imagePath):
+		""" Defines paths to all the required files (image, DLLs and model files)
+		@param imagePath: path to image to be recognized
+		"""
 		self.baseDir = os.path.abspath(os.path.dirname(__file__))
 
 		self.imagePath = imagePath
 		self.configFile = self.baseDir + "/models/yolov3.cfg"
 		self.weightsFile = self.baseDir + "/models/yolov3.weights"
 
+		# Must be in dependency order (ie. A<-B<-C where C depends on B and B depends on A).
 		self.dllPaths = ["\\dlls\\opencv_core430.dll", "\\dlls\\opencv_imgproc430.dll",
 						"\\dlls\\opencv_imgcodecs430.dll", "\\dlls\\opencv_dnn430.dll", "\\dlls\\YOLOv3-DLL.dll"]
 		self.dllPaths = [self.baseDir + dllPath for dllPath in self.dllPaths]
@@ -58,6 +63,8 @@ class YOLOv3Detection():
 					("height", c_int), ]
 
 	def _checkFiles(self):
+		"""Checks if all the required files are present. Raises a L{FileNotFoundError} if any
+		file is missing"""
 		notFound = ""
 		if not os.path.exists(self.imagePath):
 			notFound = notFound + f'\nobjectDetection(YOLOv3): image not found at {self.imagePath}'
@@ -76,15 +83,20 @@ class YOLOv3Detection():
 			raise FileNotFoundError(notFound)
 
 	def _loadDLLs(self):
-		# load dependant DLLs
+		"""Loads all the DLL files. """
+		# loads all the DLLs required by the YOLOv3 DLL
 		for dllPath in self.dllPaths[:-1]:
+			# all the d
 			_ = CDLL(dllPath)
 
-		# load required DLL
+		# load the YOLOv3 DLL
 		lib = CDLL(self.dllPaths[-1])
 		return lib
 
-	def _getDetections(self, lib):
+	def _getDetections(self, lib) -> iter:
+		"""Calls the DLL public methods and gets the object detection results.
+		@return: List of L{Detection} objects
+		"""
 		lib.doDetection.restype = c_int
 		lib.doDetection.argtypes = [c_char_p, c_char_p, c_char_p]
 
@@ -106,7 +118,10 @@ class YOLOv3Detection():
 		else:
 			return []
 
-	def _createSentence(self):
+	def _createSentence(self) -> str:
+		"""Creates a English sentence from the lables of all detected objects
+		@return: sentence form of object detection result
+		"""
 		self._checkFiles()
 		lib = self._loadDLLs()
 		results = self._getDetections(lib)
@@ -143,13 +158,19 @@ class YOLOv3Detection():
 		else:
 			return "Cannot identify any objects in the image."
 
-	def getResults(self):
+	def getResults(self) -> tuple:
+		"""Performs object detection on input image and returns the result in sentence form and the object
+		detection results.
+		@return: Tuple of the form (sentence, boxes) where sentence is the result in sentence form and
+		boxes is a list of the locations of the detected objects along with the associated object label.
+		"""
 		lib = self._loadDLLs()
 		detections = self._getDetections(lib)
 		boxes = []
 		sentence = self._createSentence()
 		for detection in detections:
 			words = self.CLASSES_SINGULAR[detection.classId].split(" ")
+			# get only relevant part of the class label in singular form
 			classLabel = " ".join(words[1:]) if len(words) > 1 else words[0]
 			boxes.append(Detection(classLabel, detection.x, detection.y, detection.width, detection.height))
 
