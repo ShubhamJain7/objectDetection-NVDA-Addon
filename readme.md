@@ -3,6 +3,8 @@
 * Author: Shubham Dilip Jain
 * Download: https://github.com/ShubhamJain7/objectDetection-NVDA-Addon/releases
 
+_* This add-on/repository is a part of my [GSoC 2020 project](https://summerofcode.withgoogle.com/projects/#6039693356957696)._
+
 This add-on allows users to perform object detection on image elements present on their screen and get results in the form of a sentence and bounding boxes drawn around the detected objects. Users can move their mouse pointer or finger (in case of touch screens) inside a bounding box to hear the object label. The result sentence can be either announced or it can be presented in a virtual, browseable window that allows users to access the result character-by-character, word-by-word, as a whole and even copy the result. This add-on works well only with "natural images" of people, animals and some common objects.
 
 _Note: Mouse tracking must be enabled for the bounding box label to be announced._
@@ -17,6 +19,7 @@ _Note: Mouse tracking must be enabled for the bounding box label to be announced
 
 - Users can also prevent the object detection process from starting on non-graphic elements by checking the `filter non-graphic elements` option under __Preferences->Settings->Vision->Object detection add-on__. This prevents users from accidentally starting the object detection process on elements that do not contain images and will produce bad results. Unchecking it allows users to perform detections on elements that may contain images but fail to report the same.
 
+_Note: In Focus mode, images cannot have focus and so the `filter non-graphic elements` option applies to the children of the focus element and recognition is allowed if at least one child is graphic._
 
 ### Building it yourself
 ----
